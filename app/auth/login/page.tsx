@@ -31,7 +31,7 @@ const login_client = async (initialState: any, formData: FormData) => {
                         await login(session.tokens?.idToken?.toString());
                 }
         } else {
-                return { message: res.nextStep }
+                return { message: res.nextStep.signInStep }
         }
         return {message: "failure."}
 
