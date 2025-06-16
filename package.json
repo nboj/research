@@ -10,6 +10,7 @@
   },
   "dependencies": {
     "aws-amplify": "^6.15.0",
+    "jose": "^6.0.11",
     "next": "15.3.3",
     "react": "^19.0.0",
     "react-dom": "^19.0.0"
