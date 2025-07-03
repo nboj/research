@@ -1,7 +1,6 @@
 'use client'
 
-import { Textarea } from "@heroui/react";
-import { StaticImport } from "next/dist/shared/lib/get-img-props";
+import { Button, Textarea } from "@heroui/react";
 import Image from "next/image";
 import { useCallback, useState } from "react";
 
@@ -13,13 +12,11 @@ type Prompt = {
 }
 
 type PromptSelectionProps = Readonly<{
-    disabled: boolean;
-    onChange: (newPrompt: Prompt) => void;
+    seed: string;
 }>
-const PromptSection = ({ disabled, onChange }: PromptSelectionProps) => {
+const PromptSection = ({ seed }: PromptSelectionProps) => {
     const [prompt, setPrompt] = useState<Prompt>({ raw: "" });
     const handleChange = useCallback((e: React.ChangeEvent<HTMLInputElement>) => {
-        onChange({ ...prompt, raw: e.target.value });
         setPrompt((current: Prompt) => {
             return { ...current, raw: e.target.value };
         });
@@ -34,16 +31,16 @@ const PromptSection = ({ disabled, onChange }: PromptSelectionProps) => {
                     )
                 }
             </div>
+            <Button>Start</Button>
         </div>
     )
 }
 
 export default function Home() {
-    const [prompt1, setPrompt1] = useState<Prompt>({ raw: "" });
-    const [prompt2, setPrompt2] = useState<Prompt>({ raw: "" });
+    const [seed, setSeed] = useState<string>("238974897213723");
     return (
         <div>
-            <PromptSection disabled onChange={(newPrompt: Prompt) => setPrompt1(newPrompt)} />
+            <PromptSection seed={seed} />
             <a href="/api/auth/sign-out">Sign Out</a>
         </div>
     );
