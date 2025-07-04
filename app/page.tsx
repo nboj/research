@@ -1,50 +1,52 @@
 'use client'
 
-import { Textarea } from "@heroui/react";
-import { StaticImport } from "next/dist/shared/lib/get-img-props";
+import { Button, Textarea } from "@heroui/react";
 import Image from "next/image";
-import { useCallback, useState } from "react";
+import { useActionState, useState } from "react";
+import Form from 'next/form'
+import { generate } from "./actions/generate";
+import { GenerateActionState, GenerateState } from "./types";
+import generator_icon from '@/public/generator_icon.png';
+import Link from "next/link";
 
-type Prompt = {
-    raw: string;
-    img?: {
-        src: string;
-    }
+const DEFAULT_STATE: GenerateActionState = {
+    state: GenerateState.PENDING
 }
 
 type PromptSelectionProps = Readonly<{
-    disabled: boolean;
-    onChange: (newPrompt: Prompt) => void;
+    seed: string;
 }>
-const PromptSection = ({ disabled, onChange }: PromptSelectionProps) => {
-    const [prompt, setPrompt] = useState<Prompt>({ raw: "" });
-    const handleChange = useCallback((e: React.ChangeEvent<HTMLInputElement>) => {
-        onChange({ ...prompt, raw: e.target.value });
-        setPrompt((current: Prompt) => {
-            return { ...current, raw: e.target.value };
-        });
-    }, [setPrompt, prompt]);
-    return (
-        <div>
-            <Textarea label="Prompt" value={prompt.raw} placeholder="Enter your prompt..." onChange={handleChange} />
+const PromptSection = ({ seed }: PromptSelectionProps) => {
+    const [actionState, action, pending] = useActionState(generate, DEFAULT_STATE);
+    if (actionState.state == GenerateState.ERROR) {
+        return (
             <div>
-                {
-                    prompt.img && (
-                        <Image src={prompt.img.src} width={100} height={100} alt={"Generated image."} />
-                    )
-                }
+                <h1 className="text-md">Uh Oh... Something went wrong, please reload the page.</h1>
             </div>
-        </div>
+        )
+    }
+    return (
+        <Form action={action} className="basis-1/2 flex flex-col gap-3" >
+            <div className="w-full h-60 rounded-[10px] border-1 border-zinc-200">
+                <Image src={generator_icon} alt={"Generated image."} className='object-contain h-full' />
+            </div>
+            <Textarea name="prompt" label="Prompt" isRequired={true} variant="bordered" color="primary" placeholder="Enter your prompt..." />
+            <Button variant='bordered' color="primary" type='submit' isLoading={pending}>{pending ? "Generating..." : "Generate"}</Button>
+        </Form>
     )
 }
 
 export default function Home() {
-    const [prompt1, setPrompt1] = useState<Prompt>({ raw: "" });
-    const [prompt2, setPrompt2] = useState<Prompt>({ raw: "" });
+    const [seed, setSeed] = useState<string>("238974897213723");
     return (
-        <div>
-            <PromptSection disabled onChange={(newPrompt: Prompt) => setPrompt1(newPrompt)} />
-            <a href="/api/auth/sign-out">Sign Out</a>
+        <div className="relative @container h-full flex flex-col justify-center gap-[1rem] max-w-[800px] m-auto">
+            <h1 className="text-xl font-light">Compare</h1>
+            <div className="flex w-full gap-[1rem] relative">
+                <PromptSection seed={seed} />
+                <span className="self-stretch bg-zinc-300 mb-10 w-[2px]"></span>
+                <PromptSection seed={seed} />
+            </div>
+            <Link href='/api/auth/sign-out'>Sign Out</Link>
         </div>
     );
 }
