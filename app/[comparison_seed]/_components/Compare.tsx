@@ -91,6 +91,7 @@ const PromptSection = ({ generation: gen, seed }: PromptSelectionProps) => {
                     <SelectItem key={"Clothing"}>Clothing</SelectItem>
                 </Select>
             </div>
+            {/*@ts-ignore*/}
             <NumberInput onValueChange={(v) => setGeneration((g: any) => ({ ...g, options: { ...g.options, physical_attributes: { ...g.options.physical_attributes, age: v } } }))} placeholder={generation?.options.physical_attributes?.age && generation?.options.physical_attributes.age.toString() ?? ""} isDisabled={readonly} className="" size="sm" />
             <p>Mood</p>
             <CheckboxGroup onValueChange={(v) => setGeneration((g: any) => ({ ...g, options: { ...g.options, mood: v } }))} defaultValue={generation?.options.mood ?? []} isDisabled={readonly} orientation="horizontal">

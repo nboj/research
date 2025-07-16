@@ -22,13 +22,21 @@ import result_blrp3 from "@/public/results/3/result_b_lrp.png"
 import result_bloglrp3 from "@/public/results/3/result_b_log_lrp.png"
 import result_b3 from "@/public/results/3/result_b.png"
 
-// result 3
+// result 4
 import result_alrp4 from "@/public/results/4/result_a_lrp.png"
 import result_aloglrp4 from "@/public/results/4/result_a_log_lrp.png"
 import result_a4 from "@/public/results/4/result_a.png"
 import result_blrp4 from "@/public/results/4/result_b_lrp.png"
 import result_bloglrp4 from "@/public/results/4/result_b_log_lrp.png"
 import result_b4 from "@/public/results/4/result_b.png"
+
+// result 5
+import result_alrp5 from "@/public/results/5/result_a_lrp.png"
+import result_aloglrp5 from "@/public/results/5/result_a_log_lrp.png"
+import result_a5 from "@/public/results/5/result_a.png"
+import result_blrp5 from "@/public/results/5/result_b_lrp.png"
+import result_bloglrp5 from "@/public/results/5/result_b_log_lrp.png"
+import result_b5 from "@/public/results/5/result_b.png"
 
 export enum GenerateState {
     PENDING,
@@ -198,6 +206,39 @@ export const comparisons: Comparison[] = [
                 technique: ['Blender', 'Unreal Engine'],
                 lighting: ['Cinematic Lighting', 'Dark'],
                 resolution: ['100 mm', 'Sharp Focus', '8K']
+            },
+        },
+    },
+    {
+        seed: "139619310252288a42342345",
+        generation_a: {
+            output: result_a5,
+            output_log_lrp: result_aloglrp5,
+            output_lrp: result_alrp5,
+            prompt: "A butterfly in a forest",
+            seed: "139619310252288045",
+            options: {
+                medium: ['Photograph'],
+                genre: ['Film Noir', 'Surreal'],
+                mood: ['Beautiful'],
+                technique: ['Pincushion Lens'],
+                lighting: ['Cinematic Lighting'],
+                resolution: ['Highly-Detailed', '100 mm', 'Sharp Focus', '16K']
+            },
+        },
+        generation_b: {
+            output: result_b5,
+            output_log_lrp: result_bloglrp5,
+            output_lrp: result_blrp5,
+            prompt: "A butterfly in a desert",
+            seed: "139619310252288045",
+            options: {
+                medium: ['Photograph'],
+                genre: ['Film Noir', 'Surreal'],
+                mood: ['Beautiful'],
+                technique: ['Pincushion Lens'],
+                lighting: ['Cinematic Lighting'],
+                resolution: ['Highly-Detailed', '100 mm', 'Sharp Focus', '16K']
             },
         },
     }
