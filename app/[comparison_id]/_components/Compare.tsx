@@ -104,7 +104,7 @@ const PromptSection = ({ generation: gen, seed }: PromptSelectionProps) => {
             <p>Technique</p>
             <CheckboxGroup onValueChange={(v) => setGeneration((g: any) => ({ ...g, options: { ...g.options, technique: v } }))} defaultValue={generation?.options.technique ?? []} isDisabled={readonly} orientation="horizontal">
                 <Checkbox value="Blender">Blender</Checkbox>
-                <Checkbox value="Pincusion Lens">Pincushion Lens</Checkbox>
+                <Checkbox value="Pincushion Lens">Pincushion Lens</Checkbox>
                 <Checkbox value="Unreal Engine">Unreal Engine</Checkbox>
                 <Checkbox value="Octane">Octane</Checkbox>
             </CheckboxGroup>

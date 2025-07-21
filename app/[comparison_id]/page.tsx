@@ -1,6 +1,8 @@
 import Compare from "./_components/Compare";
 import { Comparison } from "../types";
 import { pool } from "../_lib/db";
+import { validate } from "uuid";
+import { redirect } from "next/navigation";
 
 export const dynamic = "force-dynamic"
 
@@ -9,6 +11,11 @@ type ComparisonPageProps = Readonly<{
 }>
 export default async function ComparisonPage({ params }: ComparisonPageProps) {
     const id = (await params).comparison_id;
+    let valid = validate(id);
+    if (!valid) {
+        console.error("ID was not valid");
+        redirect("/");
+    }
     const res = await pool.query(`
 		SELECT
 			c.id,
