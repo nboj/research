@@ -50,6 +50,7 @@ export type GenerateActionState = Readonly<{
 
 
 export type Comparison = {
+    id?: string;
     seed: string;
     generation_a?: Generation;
     generation_b?: Generation;
