@@ -1,8 +1,12 @@
 'use client'
+
+import Link from "next/link";
+
 export default function Home() {
     return (
-        <>
-            <a href="/api/auth/sign-out">Sign Out</a>
-        </>
+        <div className="flex flex-col">
+            <Link href="/comparisons">Comparisons</Link>
+            <Link href="/api/auth/sign-out">Sign Out</Link>
+        </div>
     );
 }

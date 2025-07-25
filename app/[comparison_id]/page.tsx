@@ -2,7 +2,9 @@ import Compare from "./_components/Compare";
 import { Comparison } from "../types";
 import { pool } from "../_lib/db";
 import { validate } from "uuid";
-import { redirect } from "next/navigation";
+import { getSignedUrl } from "@aws-sdk/s3-request-presigner";
+import { GetObjectCommand } from "@aws-sdk/client-s3";
+import { s3 } from "../_lib/s3";
 
 export const dynamic = "force-dynamic"
 
@@ -12,9 +14,14 @@ type ComparisonPageProps = Readonly<{
 export default async function ComparisonPage({ params }: ComparisonPageProps) {
     const id = (await params).comparison_id;
     let valid = validate(id);
-    if (!valid) {
-        console.error("ID was not valid");
-        redirect("/");
+    if (!valid && id != "comparisons") {
+        return (
+            <p>{id} is invalid</p>
+        );
+    } else if (!valid) {
+        return (
+            <></>
+        );
     }
     const res = await pool.query(`
 		SELECT
@@ -28,10 +35,85 @@ export default async function ComparisonPage({ params }: ComparisonPageProps) {
 		WHERE c.id = '${id}'
 	`);
     const rows: Comparison[] = res.rows;
-    console.log("ROWSSSS", res);
+	const output_a = await getSignedUrl(
+		s3,
+		new GetObjectCommand({
+			Bucket: process.env.BUCKET!,
+			Key: `data/${rows[0].id}/${rows[0].generation_a?.id}/output_a.png`,
+		}),
+		{ expiresIn: 60 }
+	);
+	const output_a_lrp = await getSignedUrl(
+		s3,
+		new GetObjectCommand({
+			Bucket: process.env.BUCKET!,
+			Key: `data/${rows[0].id}/${rows[0].generation_a?.id}/output_a_lrp.png`,
+		}),
+		{ expiresIn: 60 }
+	);
+	const output_b = await getSignedUrl(
+		s3,
+		new GetObjectCommand({
+			Bucket: process.env.BUCKET!,
+			Key: `data/${rows[0].id}/${rows[0].generation_b?.id}/output_b.png`,
+		}),
+		{ expiresIn: 60 }
+	);
+	const output_b_lrp = await getSignedUrl(
+		s3,
+		new GetObjectCommand({
+			Bucket: process.env.BUCKET!,
+			Key: `data/${rows[0].id}/${rows[0].generation_b?.id}/output_b_lrp.png`,
+		}),
+		{ expiresIn: 60 }
+	);
+	const comparison: Comparison = {
+		...rows[0],
+		generation_a: rows[0].generation_a && {
+			...rows[0].generation_a as any,
+			output: output_a,
+			output_lrp: output_a_lrp,
+			options: {
+				...rows[0].generation_a?.options ?? {}
+			}
+		},
+		generation_b:  rows[0].generation_b &&{
+			...rows[0].generation_b as any,
+			output: output_b,
+			output_lrp: output_b_lrp,
+			options: {
+				...rows[0].generation_a?.options ?? {}
+			}
+		}
+	}
+	console.log(comparison);
+    // try {
+    //     const data: any = await runWithAmplifyServerContext({
+    //         nextServerContext: { cookies },
+    //         operation: async (contextSpec) => {
+    //             const url = await getUrl(contextSpec, {
+    //                 path: "data/wallpaper.jpeg",
+    //                 options: {
+    //                     expiresIn: 1000,
+    //                     validateObjectExistence: true
+    //                 }
+    //             });
+    //             const session = await fetchAuthSession(contextSpec);
+    //             console.log(session.tokens?.accessToken.toString())
+    //             const res = await fetch(url.url, {
+    //                 method: 'GET',
+    //             });
+    //             return res;
+    //         }
+    //     });
+    //     console.log(data);
+    // } catch (e) {
+    //     console.log(e);
+    // }
+
     if (rows.length > 0) {
         return (
-            <Compare comparison={rows[0]} />
+            <Compare comparison={comparison} />
         )
     } else {
         return (

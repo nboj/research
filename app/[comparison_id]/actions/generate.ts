@@ -4,6 +4,10 @@ import { runWithAmplifyServerContext } from '@/app/_utils/amplifyServerUtils';
 import { GenerateActionState, GenerateState, Generation } from "../../types";
 import { fetchAuthSession } from 'aws-amplify/auth/server';
 import { cookies } from 'next/headers';
+import { GetObjectCommand, PutObjectCommand } from "@aws-sdk/client-s3";
+import { s3 } from '@/app/_lib/s3';
+import { pool } from '@/app/_lib/db';
+import { getSignedUrl } from '@aws-sdk/s3-request-presigner';
 
 
 
@@ -32,15 +36,15 @@ import { cookies } from 'next/headers';
 //    "yolo"
 //}
 
-export const generate = async (generation: Generation): Promise<GenerateActionState> => {
+export const generate = async (generation: Generation, comparison_id: string): Promise<GenerateActionState> => {
     console.log(generation);
     try {
-        const res: boolean = await runWithAmplifyServerContext({
+        const res: any = await runWithAmplifyServerContext({
             nextServerContext: { cookies },
             operation: async (contextSpec) => {
                 try {
                     const session = await fetchAuthSession(contextSpec);
-                    let result = await fetch("http://127.0.0.1:8000/create-prompt", {
+                    let result = await fetch("http://192.168.122.61:8000/create-prompt", {
                         method: "POST",
                         body: JSON.stringify({
                             userid: session.tokens?.idToken?.payload.sub,
@@ -52,31 +56,89 @@ export const generate = async (generation: Generation): Promise<GenerateActionSt
                             "Content-Type": "application/json"
                         }
                     })
-                    let body = await result.json();
-                    console.log(body);
-                    return result.ok;
+					console.log(result);
+                    let prompt = await result.json();
+                    if (!result.ok) {
+                        return result;
+                    }
+                    console.log(prompt);
+                    console.log();
+                    console.log();
+                    console.log("GENERATING...");
+                    console.log();
+                    console.log();
+                    let result2 = await fetch("http://192.168.122.61:8000/generate", {
+                        method: "POST",
+                        body: JSON.stringify({
+                            userid: session.tokens?.idToken?.payload.sub,
+                            prompt: prompt,
+                            seed: generation.seed,
+                        }),
+                        headers: {
+                            "Content-Type": "application/json"
+                        }
+                    })
+                    let images = await result2.json();
+
+					let generation_id = crypto.randomUUID();
+
+
+					console.log(comparison_id)
+					const key = `data/${comparison_id}/${generation_id}/output.png`;
+					const body = Buffer.from(images[1], "base64");
+					await s3.send(new PutObjectCommand({
+						Bucket: process.env.BUCKET!,
+						Key: key,
+						Body: body,
+						ContentType: "image/png",
+					}));
+					const output = await getSignedUrl(
+						s3,
+						new GetObjectCommand({
+							Bucket: process.env.BUCKET!,
+							Key: `data/${comparison_id}/${generation_id}/output.png`,
+						}),
+						{ expiresIn: 60 }
+					);
+					const output_lrp = await getSignedUrl(
+						s3,
+						new GetObjectCommand({
+							Bucket: process.env.BUCKET!,
+							Key: `data/${comparison_id}/${generation_id}/output_lrp.png`,
+						}),
+						{ expiresIn: 60 }
+					);
+					await pool.query(`
+						INSERT INTO generation (id, output, output_lrp, seed, label, options, comparison_id)
+						VALUES(${generation_id}, ${output}, ${output_lrp}, ${generation.seed}, ${prompt}, ${generation.options}, ${comparison_id})
+					`);
+					return {
+                        status: result2.ok,
+                        data: images,
+                        prompt: prompt,
+                    };
                 } catch (error) {
                     console.error(typeof error, error);
-                    return false;
+                    return error;
                 }
             }
         });
-        if (res) {
+        if (res && res.status) {
             return {
-                state: GenerateState.SUCCESS
+                state: GenerateState.SUCCESS,
+                data: res.data,
+                prompt: res.prompt,
             }
         } else {
+            console.log(res)
             return {
                 state: GenerateState.ERROR
             }
         }
     } catch (e) {
         console.log(typeof e, e);
-    }
-    await new Promise((res) => {
-        setTimeout(() => { res(true) }, 2000)
-    })
-    return {
-        state: GenerateState.SUCCESS
+		return {
+			state: GenerateState.ERROR
+		}
     }
 } 

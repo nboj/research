@@ -46,6 +46,8 @@ export enum GenerateState {
 
 export type GenerateActionState = Readonly<{
     state: GenerateState;
+    data?: string[];
+    prompt?: string;
 }>
 
 
@@ -246,9 +248,10 @@ export const comparisons: Comparison[] = [
 ]
 
 export type Generation = {
+    id?: string;
     seed: string;
     output: any;
-    output_log_lrp: any;
+    output_log_lrp?: any;
     output_lrp: any;
     prompt: string;
     options: {

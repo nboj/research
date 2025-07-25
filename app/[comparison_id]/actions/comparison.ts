@@ -4,7 +4,7 @@ import { pool } from "@/app/_lib/db"
 import { revalidatePath } from "next/cache";
 
 export const createComparison = async () => {
-    const seed = crypto.randomUUID();
+    const seed = Math.floor(Math.random() * 10_000_000_000_000);
     let res = await pool.query(`
 		insert into comparison (seed)
 		values ('${seed}')
