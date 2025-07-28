@@ -56,7 +56,7 @@ export const generate = async (generation: Generation, comparison_id: string): P
                             "Content-Type": "application/json"
                         }
                     })
-					console.log(result);
+                    console.log(result);
                     let prompt = await result.json();
                     if (!result.ok) {
                         return result;
@@ -80,39 +80,37 @@ export const generate = async (generation: Generation, comparison_id: string): P
                     })
                     let images = await result2.json();
 
-					let generation_id = crypto.randomUUID();
+                    let generation_id = crypto.randomUUID();
 
 
-					console.log(comparison_id)
-					const key = `data/${comparison_id}/${generation_id}/output.png`;
-					const body = Buffer.from(images[1], "base64");
-					await s3.send(new PutObjectCommand({
-						Bucket: process.env.BUCKET!,
-						Key: key,
-						Body: body,
-						ContentType: "image/png",
-					}));
-					const output = await getSignedUrl(
-						s3,
-						new GetObjectCommand({
-							Bucket: process.env.BUCKET!,
-							Key: `data/${comparison_id}/${generation_id}/output.png`,
-						}),
-						{ expiresIn: 60 }
-					);
-					const output_lrp = await getSignedUrl(
-						s3,
-						new GetObjectCommand({
-							Bucket: process.env.BUCKET!,
-							Key: `data/${comparison_id}/${generation_id}/output_lrp.png`,
-						}),
-						{ expiresIn: 60 }
-					);
-					await pool.query(`
-						INSERT INTO generation (id, output, output_lrp, seed, label, options, comparison_id)
-						VALUES(${generation_id}, ${output}, ${output_lrp}, ${generation.seed}, ${prompt}, ${generation.options}, ${comparison_id})
+                    console.log(comparison_id)
+                    {
+
+                        const key = `data/${comparison_id}/${generation_id}/output.png`;
+                        const body = Buffer.from(images[1], "base64");
+                        await s3.send(new PutObjectCommand({
+                            Bucket: process.env.BUCKET!,
+                            Key: key,
+                            Body: body,
+                            ContentType: "image/png",
+                        }));
+                    }
+                    {
+
+                        const key = `data/${comparison_id}/${generation_id}/output_lrp.png`;
+                        const body = Buffer.from(images[0], "base64");
+                        await s3.send(new PutObjectCommand({
+                            Bucket: process.env.BUCKET!,
+                            Key: key,
+                            Body: body,
+                            ContentType: "image/png",
+                        }));
+                    }
+                    await pool.query(`
+						INSERT INTO generation (id, output, output_lrp, seed, prompt, options, comparison_id)
+						VALUES('${generation_id}', 'data/${comparison_id}/${generation_id}/output.png', 'data/${comparison_id}/${generation_id}/output_lrp.png', ${generation.seed}, '${prompt}', '${JSON.stringify(generation.options)}', '${comparison_id}')
 					`);
-					return {
+                    return {
                         status: result2.ok,
                         data: images,
                         prompt: prompt,
@@ -137,8 +135,8 @@ export const generate = async (generation: Generation, comparison_id: string): P
         }
     } catch (e) {
         console.log(typeof e, e);
-		return {
-			state: GenerateState.ERROR
-		}
+        return {
+            state: GenerateState.ERROR
+        }
     }
 } 

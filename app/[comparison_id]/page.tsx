@@ -24,69 +24,70 @@ export default async function ComparisonPage({ params }: ComparisonPageProps) {
         );
     }
     const res = await pool.query(`
-		SELECT
+		SELECT DISTINCT ON (c.id)
 			c.id,
 			c.seed,
 			row_to_json(ga) AS generation_a,  
 			row_to_json(gb) AS generation_b  
 		FROM   comparison  AS c
 		LEFT JOIN   generation  AS ga  ON ga.comparison_id = c.id  
-		LEFT JOIN   generation  AS gb  ON gb.comparison_id = c.id
+		LEFT JOIN   generation  AS gb  ON gb.comparison_id = c.id AND ga.id <> gb.id
 		WHERE c.id = '${id}'
 	`);
     const rows: Comparison[] = res.rows;
-	const output_a = await getSignedUrl(
-		s3,
-		new GetObjectCommand({
-			Bucket: process.env.BUCKET!,
-			Key: `data/${rows[0].id}/${rows[0].generation_a?.id}/output_a.png`,
-		}),
-		{ expiresIn: 60 }
-	);
-	const output_a_lrp = await getSignedUrl(
-		s3,
-		new GetObjectCommand({
-			Bucket: process.env.BUCKET!,
-			Key: `data/${rows[0].id}/${rows[0].generation_a?.id}/output_a_lrp.png`,
-		}),
-		{ expiresIn: 60 }
-	);
-	const output_b = await getSignedUrl(
-		s3,
-		new GetObjectCommand({
-			Bucket: process.env.BUCKET!,
-			Key: `data/${rows[0].id}/${rows[0].generation_b?.id}/output_b.png`,
-		}),
-		{ expiresIn: 60 }
-	);
-	const output_b_lrp = await getSignedUrl(
-		s3,
-		new GetObjectCommand({
-			Bucket: process.env.BUCKET!,
-			Key: `data/${rows[0].id}/${rows[0].generation_b?.id}/output_b_lrp.png`,
-		}),
-		{ expiresIn: 60 }
-	);
-	const comparison: Comparison = {
-		...rows[0],
-		generation_a: rows[0].generation_a && {
-			...rows[0].generation_a as any,
-			output: output_a,
-			output_lrp: output_a_lrp,
-			options: {
-				...rows[0].generation_a?.options ?? {}
-			}
-		},
-		generation_b:  rows[0].generation_b &&{
-			...rows[0].generation_b as any,
-			output: output_b,
-			output_lrp: output_b_lrp,
-			options: {
-				...rows[0].generation_a?.options ?? {}
-			}
-		}
-	}
-	console.log(comparison);
+    const output_a = rows[0].generation_a && await getSignedUrl(
+        s3,
+        new GetObjectCommand({
+            Bucket: process.env.BUCKET!,
+            Key: rows[0].generation_a?.output,
+        }),
+        { expiresIn: 60 }
+    );
+    const output_a_lrp = rows[0].generation_a && await getSignedUrl(
+        s3,
+        new GetObjectCommand({
+            Bucket: process.env.BUCKET!,
+            Key: rows[0].generation_a?.output_lrp,
+        }),
+        { expiresIn: 60 }
+    );
+	console.log("OUTPUTLRP", output_a_lrp)
+    const output_b = rows[0].generation_b && await getSignedUrl(
+        s3,
+        new GetObjectCommand({
+            Bucket: process.env.BUCKET!,
+            Key: rows[0].generation_b?.output,
+        }),
+        { expiresIn: 60 }
+    );
+    const output_b_lrp = rows[0].generation_b && await getSignedUrl(
+        s3,
+        new GetObjectCommand({
+            Bucket: process.env.BUCKET!,
+            Key: rows[0].generation_b?.output_lrp,
+        }),
+        { expiresIn: 60 }
+    );
+    const comparison: Comparison = {
+        ...rows[0],
+        generation_a: rows[0].generation_a && {
+            ...rows[0].generation_a as any,
+            output: output_a,
+            output_lrp: output_a_lrp,
+            options: {
+                ...rows[0].generation_a?.options ?? {}
+            }
+        },
+        generation_b: rows[0].generation_b && {
+            ...rows[0].generation_b as any,
+            output: output_b,
+            output_lrp: output_b_lrp,
+            options: {
+                ...rows[0].generation_b?.options ?? {}
+            }
+        }
+    }
+    console.log(comparison);
     // try {
     //     const data: any = await runWithAmplifyServerContext({
     //         nextServerContext: { cookies },
