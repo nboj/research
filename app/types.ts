@@ -69,6 +69,8 @@ export type Mood = "Beautiful" | "Eerie" | "Bleak" | "Ugly" | "Calm";
 export type Technique = "Blender" | "Pincushion Lens" | "Unreal Engine" | "Octane";
 export type Lighting = "Cinematic Lighting" | "Dark" | "Realistic Shaded Lighting" | "Studio Lighting" | "Radiant Light";
 export type Resolution = "Highly-Detailed" | "Photorealistic" | "100 mm" | "8K" | "16K" | "HQ" | "Sharp Focus";
+export type Setting = "Desert" | "Forest" | "City" | "Suburban" | "Antarctica" | "Caribean" | "Mars";
+export type angle = "Ultra Wide"| "Zenith View"| "Cinematic View"| "Close Up";
 
 export const comparisons: Comparison[] = [
     {
@@ -262,6 +264,8 @@ export type Generation = {
         technique?: Technique[];
         lighting?: Lighting[];
         resolution?: Resolution[];
+        setting?: Setting[];
+        angle?: angle[];
     }
 };
 export type GenerationOld = {

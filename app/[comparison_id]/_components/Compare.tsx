@@ -53,8 +53,8 @@ const PromptSection = ({ onGenerate, generation: gen, seed, id }: PromptSelectio
                 current_generation.prompt = prompt as string;
                 let res = await generate(current_generation, id);
                 if (res.data) {
-                    current_generation.output = toDataUrl(res.data[0]);
-                    current_generation.output_lrp = toDataUrl(res.data[1]);
+                    current_generation.output = toDataUrl(res.data[1]);
+                    current_generation.output_lrp = toDataUrl(res.data[0]);
                     current_generation.prompt = res.prompt as string;
 					generation.id = "new";
                     onGenerate(current_generation);
@@ -152,6 +152,25 @@ const PromptSection = ({ onGenerate, generation: gen, seed, id }: PromptSelectio
                         <Checkbox value="16K">16K</Checkbox>
                         <Checkbox value="HQ">HQ</Checkbox>
                         <Checkbox value="Sharp Focus">Sharp Focus</Checkbox>
+                    </CheckboxGroup>
+                </AccordionItem>
+                <AccordionItem title="Setting">
+                    <CheckboxGroup onValueChange={(v) => setGeneration((g: any) => ({ ...g, options: { ...g.options, setting: v } }))} isDisabled={readonly} defaultValue={gen?.options.setting ?? generation?.options.setting ?? []} orientation="horizontal">
+                        <Checkbox value="Desert">Desert</Checkbox>
+                        <Checkbox value="Forest">Forest</Checkbox>
+                        <Checkbox value="City">City</Checkbox>
+                        <Checkbox value="Suburban">Suburban</Checkbox>
+                        <Checkbox value="Antarctica">Antarctica</Checkbox>
+                        <Checkbox value="Caribbean">Caribbean</Checkbox>
+                        <Checkbox value="Mars">Mars</Checkbox>
+                    </CheckboxGroup>
+                </AccordionItem>
+                <AccordionItem title="Angle">
+                    <CheckboxGroup onValueChange={(v) => setGeneration((g: any) => ({ ...g, options: { ...g.options, setting: v } }))} isDisabled={readonly} defaultValue={gen?.options.setting ?? generation?.options.setting ?? []} orientation="horizontal">
+                        <Checkbox value="Ultra Wide">Ultra Wide</Checkbox>
+                        <Checkbox value="Zenith View">Zenith View</Checkbox>
+                        <Checkbox value="Cinematic View">Cinematic View</Checkbox>
+                        <Checkbox value="Close Up">Close Up</Checkbox>
                     </CheckboxGroup>
                 </AccordionItem>
             </Accordion>

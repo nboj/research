@@ -25,4 +25,5 @@ body {
 body,
 html {
 	overflow: auto;
+	height: 100%;
 }
