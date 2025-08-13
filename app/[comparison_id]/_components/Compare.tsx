@@ -41,6 +41,7 @@ const PromptSection = ({ onGenerate, generation: gen, seed, id }: PromptSelectio
     const readonly = useMemo(() => gen?.id ? true : false, [gen])
     const [generation, setGeneration] = useState<Generation | undefined>(gen);
     const [pending, setPending] = useState(false);
+    const [currentToken, setCurrentToken] = useState<number>(0);
     const handleAction = useCallback(async (e: React.FormEvent) => {
         e.preventDefault();
         try {
@@ -53,10 +54,10 @@ const PromptSection = ({ onGenerate, generation: gen, seed, id }: PromptSelectio
                 current_generation.prompt = prompt as string;
                 let res = await generate(current_generation, id);
                 if (res.data) {
-                    current_generation.output = toDataUrl(res.data[1]);
-                    current_generation.output_lrp = toDataUrl(res.data[0]);
+                    current_generation.output = toDataUrl(res.data.images[0]);
+                    current_generation.output_lrp = toDataUrl(res.data.images[1]);
                     current_generation.prompt = res.prompt as string;
-					generation.id = "new";
+                    generation.id = "new";
                     onGenerate(current_generation);
                 }
             } else {
@@ -81,7 +82,31 @@ const PromptSection = ({ onGenerate, generation: gen, seed, id }: PromptSelectio
     }, [generation])
     return (
         <form onSubmit={handleAction} className="flex h-full flex-col gap-3">
-            <Textarea isDisabled={readonly} name="prompt" label="Prompt" isRequired={true} variant="bordered" color="primary" placeholder={generation?.prompt} />
+            {
+
+                readonly ? (
+                    <div>
+                        <div className="w-full h-60 rounded-[10px] border-1 border-zinc-200">
+                            <img src={generation?.images[currentToken]} className={styles.result_image}/>
+                        </div>
+                        <p>Selected: {generation?.tokens[currentToken]}</p>
+                        <div className={"flex flex-wrap"}>
+                            {
+
+                                generation?.tokens.map((token: string, index: number) => (
+                                    <span className={`${styles.token} ${index==currentToken && styles.selected}`} key={`${token}-${index}`} onClick={() => setCurrentToken(index)}>
+                                        {!token.match(/[.!?,:;]$/) ? <>&nbsp;</> : ''}
+                                        {token}
+                                    </span>
+                                ))
+
+                            }
+                        </div>
+                    </div>
+                ) : (
+                    <Textarea isDisabled={readonly} name="prompt" label="Prompt" isRequired={true} variant="bordered" color="primary" placeholder={generation?.prompt} />
+                )
+            }
             <Accordion className='w-full' selectionMode="multiple">
                 <AccordionItem title="Medium">
                     <CheckboxGroup onValueChange={(v) => setGeneration((g: any) => ({ ...g, options: { ...g.options, medium: v } }))} defaultValue={gen?.options?.medium ?? generation?.options.medium ?? []} isDisabled={readonly} orientation="horizontal">

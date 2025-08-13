@@ -41,7 +41,7 @@ export default async function ComparisonPage({ params }: ComparisonPageProps) {
             Bucket: process.env.BUCKET!,
             Key: rows[0].generation_a?.output,
         }),
-        { expiresIn: 60 }
+        { expiresIn: 60 * 60 }
     );
     const output_a_lrp = rows[0].generation_a && await getSignedUrl(
         s3,
@@ -49,16 +49,30 @@ export default async function ComparisonPage({ params }: ComparisonPageProps) {
             Bucket: process.env.BUCKET!,
             Key: rows[0].generation_a?.output_lrp,
         }),
-        { expiresIn: 60 }
+        { expiresIn: 60 * 60 }
     );
-	console.log("OUTPUTLRP", output_a_lrp)
+    const image_outputs_a = [];
+    if (rows[0].generation_a) {
+        for (let image of rows[0].generation_a.images) {
+            const img = rows[0].generation_a && await getSignedUrl(
+                s3,
+                new GetObjectCommand({
+                    Bucket: process.env.BUCKET!,
+                    Key: image,
+                }),
+                { expiresIn: 60 * 60 }
+            );
+            image_outputs_a.push(img);
+        }
+    }
+    console.log("OUTPUTLRP", output_a_lrp)
     const output_b = rows[0].generation_b && await getSignedUrl(
         s3,
         new GetObjectCommand({
             Bucket: process.env.BUCKET!,
             Key: rows[0].generation_b?.output,
         }),
-        { expiresIn: 60 }
+        { expiresIn: 60 * 60 }
     );
     const output_b_lrp = rows[0].generation_b && await getSignedUrl(
         s3,
@@ -66,8 +80,22 @@ export default async function ComparisonPage({ params }: ComparisonPageProps) {
             Bucket: process.env.BUCKET!,
             Key: rows[0].generation_b?.output_lrp,
         }),
-        { expiresIn: 60 }
+        { expiresIn: 60 * 60 }
     );
+    const image_outputs_b = [];
+    if (rows[0].generation_b) {
+        for (let image of rows[0].generation_b.images) {
+            const img = rows[0].generation_b && await getSignedUrl(
+                s3,
+                new GetObjectCommand({
+                    Bucket: process.env.BUCKET!,
+                    Key: image,
+                }),
+                { expiresIn: 60 * 60 }
+            );
+            image_outputs_b.push(img);
+        }
+    }
     const comparison: Comparison = {
         ...rows[0],
         generation_a: rows[0].generation_a && {
@@ -76,7 +104,8 @@ export default async function ComparisonPage({ params }: ComparisonPageProps) {
             output_lrp: output_a_lrp,
             options: {
                 ...rows[0].generation_a?.options ?? {}
-            }
+            },
+            images: image_outputs_a
         },
         generation_b: rows[0].generation_b && {
             ...rows[0].generation_b as any,
@@ -84,7 +113,8 @@ export default async function ComparisonPage({ params }: ComparisonPageProps) {
             output_lrp: output_b_lrp,
             options: {
                 ...rows[0].generation_b?.options ?? {}
-            }
+            },
+            images: image_outputs_b
         }
     }
     console.log(comparison);

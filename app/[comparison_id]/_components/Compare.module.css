@@ -3,3 +3,15 @@
 	height: 100%;
 	margin: auto;
 }
+
+.token {
+	cursor: pointer;
+}
+
+.token:hover {
+	color: red;
+}
+
+.token.selected {
+	color: blue;
+}

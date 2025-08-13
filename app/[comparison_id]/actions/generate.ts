@@ -78,7 +78,7 @@ export const generate = async (generation: Generation, comparison_id: string): P
                             "Content-Type": "application/json"
                         }
                     })
-                    let images = await result2.json();
+                    let data: { tokens: string[], images: string[] } = await result2.json();
 
                     let generation_id = crypto.randomUUID();
 
@@ -87,7 +87,7 @@ export const generate = async (generation: Generation, comparison_id: string): P
                     {
 
                         const key = `data/${comparison_id}/${generation_id}/output.png`;
-                        const body = Buffer.from(images[1], "base64");
+                        const body = Buffer.from(data.images[0], "base64");
                         await s3.send(new PutObjectCommand({
                             Bucket: process.env.BUCKET!,
                             Key: key,
@@ -98,7 +98,7 @@ export const generate = async (generation: Generation, comparison_id: string): P
                     {
 
                         const key = `data/${comparison_id}/${generation_id}/output_lrp.png`;
-                        const body = Buffer.from(images[0], "base64");
+                        const body = Buffer.from(data.images[1], "base64");
                         await s3.send(new PutObjectCommand({
                             Bucket: process.env.BUCKET!,
                             Key: key,
@@ -106,13 +106,39 @@ export const generate = async (generation: Generation, comparison_id: string): P
                             ContentType: "image/png",
                         }));
                     }
+                    let images = [];
+                    {
+                        for (let token = 0; token < data.tokens.length; token++) {
+                            const key = `data/${comparison_id}/${generation_id}/${token}.png`;
+                            images.push(key);
+                            const body = Buffer.from(data.images[token+2], "base64");
+                            await s3.send(new PutObjectCommand({
+                                Bucket: process.env.BUCKET!,
+                                Key: key,
+                                Body: body,
+                                ContentType: "image/png",
+                            }));
+                        }
+
+                    }
+                    console.log(images)
                     await pool.query(`
-						INSERT INTO generation (id, output, output_lrp, seed, prompt, options, comparison_id)
-						VALUES('${generation_id}', 'data/${comparison_id}/${generation_id}/output.png', 'data/${comparison_id}/${generation_id}/output_lrp.png', ${generation.seed}, '${prompt}', '${JSON.stringify(generation.options)}', '${comparison_id}')
-					`);
+						INSERT INTO generation (id, output, output_lrp, seed, prompt, options, comparison_id, images, tokens)
+						VALUES($1, $2, $3, $4, $5, $6, $7, $8, $9)
+					`, [
+                        generation_id,
+                        `data/${comparison_id}/${generation_id}/output.png`,
+                        `data/${comparison_id}/${generation_id}/output_lrp.png`,
+                        generation.seed,
+                        prompt,
+                        JSON.stringify(generation.options),
+                        comparison_id,
+                        images,
+                        data.tokens
+                    ]);
                     return {
                         status: result2.ok,
-                        data: images,
+                        data: { images: data.images, tokens: data.tokens },
                         prompt: prompt,
                     };
                 } catch (error) {
