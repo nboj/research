@@ -8,6 +8,7 @@ import { pool } from "../_lib/db";
 import { getSignedUrl } from '@aws-sdk/s3-request-presigner';
 import { GetObjectCommand, PutObjectCommand } from "@aws-sdk/client-s3";
 import { s3 } from '../_lib/s3';
+import styles from "./layout.module.css"
 
 export const dynamic = 'force-dynamic';
 
@@ -90,7 +91,7 @@ LEFT JOIN generation AS gb ON gb.comparison_id = c.id AND ga.id <> gb.id;
                             rows.map((comparison, index) => {
                                 return (
                                     <Link href={`/${comparison.id}`} className="w-[20rem] relative flex flex-col" key={`${comparison.id}-${index}`} >
-                                        <div className={"flex w-[20rem]"}>
+                                        <div className={styles.nav_item}>
                                             <img src={comparison?.generation_a?.output ?? generator_icon.src} alt={"Generated image."} className='object-contain w-[50%]' />
                                             <img src={comparison?.generation_b?.output ?? generator_icon.src} alt={"Generated image."} className='object-contain w-[50%]' />
                                         </div>

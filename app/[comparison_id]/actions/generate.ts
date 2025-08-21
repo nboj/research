@@ -44,10 +44,9 @@ export const generate = async (generation: Generation, comparison_id: string): P
             operation: async (contextSpec) => {
                 try {
                     const session = await fetchAuthSession(contextSpec);
-                    let result = await fetch("http://192.168.122.61:8000/create-prompt", {
+                    let result = await fetch("http://localhost:8000/create-prompt", {
                         method: "POST",
                         body: JSON.stringify({
-                            userid: session.tokens?.idToken?.payload.sub,
                             prompt: generation.prompt,
                             options: { ...generation.options },
                             seed: generation.seed,

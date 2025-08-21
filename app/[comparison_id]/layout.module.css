@@ -1,0 +1,13 @@
+.nav_item {
+    display: flex;
+    width: 20rem;
+    border-radius: 5px;
+}
+
+.nav_item img:first-of-type {
+    border-top-left-radius: inherit;
+}
+
+.nav_item img:last-of-type {
+    border-top-right-radius: inherit;
+}
