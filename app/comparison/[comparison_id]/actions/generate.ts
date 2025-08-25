@@ -1,7 +1,7 @@
 'use server'
 
 import { runWithAmplifyServerContext } from '@/app/_utils/amplifyServerUtils';
-import { GenerateActionState, GenerateState, Generation } from "../../types";
+import { GenerateActionState, GenerateState, Generation } from "../../../types";
 import { fetchAuthSession } from 'aws-amplify/auth/server';
 import { cookies } from 'next/headers';
 import { GetObjectCommand, PutObjectCommand } from "@aws-sdk/client-s3";

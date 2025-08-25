@@ -1,0 +1,28 @@
+.outer_options_container {
+    display: flex;
+}
+.options_container {
+    width: 100%;
+}
+
+.options_container >* {
+}
+
+
+.result_image {
+	object-fit: contain;
+	height: 100%;
+	margin: auto;
+}
+
+.token {
+	cursor: pointer;
+}
+
+.token:hover {
+	color: red;
+}
+
+.token.selected {
+	color: blue;
+}

@@ -1,10 +1,12 @@
 import Compare from "./_components/Compare";
-import { Comparison } from "../types";
-import { pool } from "../_lib/db";
-import { validate } from "uuid";
+import { Comparison } from "../../types";
+import { pool } from "../../_lib/db";
 import { getSignedUrl } from "@aws-sdk/s3-request-presigner";
 import { GetObjectCommand } from "@aws-sdk/client-s3";
-import { s3 } from "../_lib/s3";
+import { s3 } from "../../_lib/s3";
+import { runWithAmplifyServerContext } from "@/app/_utils/amplifyServerUtils";
+import { cookies } from "next/headers";
+import { fetchAuthSession } from "aws-amplify/auth/server";
 
 export const dynamic = "force-dynamic"
 
@@ -13,29 +15,53 @@ type ComparisonPageProps = Readonly<{
 }>
 export default async function ComparisonPage({ params }: ComparisonPageProps) {
     const id = (await params).comparison_id;
-    let valid = validate(id);
-    if (!valid && id != "comparisons") {
+    const user_id: any = await runWithAmplifyServerContext({
+        nextServerContext: { cookies },
+        operation: async (contextSpec) => {
+            try {
+                const session = await fetchAuthSession(contextSpec);
+                return session.tokens?.idToken?.payload.sub;
+            } catch (e: any) {
+                return null
+            }
+        }
+    })
+    if (!user_id) {
         return (
-            <p>{id} is invalid</p>
-        );
-    } else if (!valid) {
-        return (
-            <></>
-        );
+            <div className="flex w-full justify-between items-center">
+                Error, no user id
+            </div>
+        )
     }
-    const res = await pool.query(`
-		SELECT DISTINCT ON (c.id)
-			c.id,
-			c.seed,
-			row_to_json(ga) AS generation_a,  
-			row_to_json(gb) AS generation_b  
-		FROM   comparison  AS c
-		LEFT JOIN   generation  AS ga  ON ga.comparison_id = c.id  
-		LEFT JOIN   generation  AS gb  ON gb.comparison_id = c.id AND ga.id <> gb.id
-		WHERE c.id = '${id}'
-	`);
-    const rows: Comparison[] = res.rows;
-    const output_a = rows[0].generation_a && await getSignedUrl(
+    let res;
+    try {
+        res = await pool.query(`
+            SELECT COALESCE(json_agg(comp ORDER BY comp->>'id'), '[]'::json) AS comparison
+            FROM (
+              SELECT json_build_object(
+                'id', c.id,
+                'generation_a', row_to_json(ga),
+                'generation_b', row_to_json(gb)
+              ) AS comp
+              FROM comparison c
+              LEFT JOIN (
+                SELECT g.*, row_number() OVER (PARTITION BY g.comparison_id ORDER BY g.id) AS rn
+                FROM generation g
+              ) ga ON ga.comparison_id = c.id AND ga.rn = 1
+              LEFT JOIN (
+                SELECT g.*, row_number() OVER (PARTITION BY g.comparison_id ORDER BY g.id) AS rn
+                FROM generation g
+              ) gb ON gb.comparison_id = c.id AND gb.rn = 2
+              WHERE c.user_id = $1 AND c.id = $2
+            ) s;
+        `, [user_id, id]);
+
+    } catch (e: any) {
+        console.error("Err querying id: ", id, e);
+        return <h1>Could not find comparison result for id: {id}</h1>
+    }
+    const rows: Comparison[] = res.rows[0].comparison;
+    const output_a = rows[0].generation_a?.output && await getSignedUrl(
         s3,
         new GetObjectCommand({
             Bucket: process.env.BUCKET!,
@@ -43,7 +69,7 @@ export default async function ComparisonPage({ params }: ComparisonPageProps) {
         }),
         { expiresIn: 60 * 60 }
     );
-    const output_a_lrp = rows[0].generation_a && await getSignedUrl(
+    const output_a_lrp = rows[0].generation_a?.output && await getSignedUrl(
         s3,
         new GetObjectCommand({
             Bucket: process.env.BUCKET!,
@@ -52,7 +78,7 @@ export default async function ComparisonPage({ params }: ComparisonPageProps) {
         { expiresIn: 60 * 60 }
     );
     const image_outputs_a = [];
-    if (rows[0].generation_a) {
+    if (rows[0].generation_a?.output) {
         for (let image of rows[0].generation_a.images) {
             const img = rows[0].generation_a && await getSignedUrl(
                 s3,
@@ -66,7 +92,7 @@ export default async function ComparisonPage({ params }: ComparisonPageProps) {
         }
     }
     console.log("OUTPUTLRP", output_a_lrp)
-    const output_b = rows[0].generation_b && await getSignedUrl(
+    const output_b = rows[0].generation_b?.output && await getSignedUrl(
         s3,
         new GetObjectCommand({
             Bucket: process.env.BUCKET!,
@@ -74,7 +100,7 @@ export default async function ComparisonPage({ params }: ComparisonPageProps) {
         }),
         { expiresIn: 60 * 60 }
     );
-    const output_b_lrp = rows[0].generation_b && await getSignedUrl(
+    const output_b_lrp = rows[0].generation_b?.output && await getSignedUrl(
         s3,
         new GetObjectCommand({
             Bucket: process.env.BUCKET!,
@@ -83,7 +109,7 @@ export default async function ComparisonPage({ params }: ComparisonPageProps) {
         { expiresIn: 60 * 60 }
     );
     const image_outputs_b = [];
-    if (rows[0].generation_b) {
+    if (rows[0].generation_b?.output) {
         for (let image of rows[0].generation_b.images) {
             const img = rows[0].generation_b && await getSignedUrl(
                 s3,
@@ -117,30 +143,7 @@ export default async function ComparisonPage({ params }: ComparisonPageProps) {
             images: image_outputs_b
         }
     }
-    console.log(comparison);
-    // try {
-    //     const data: any = await runWithAmplifyServerContext({
-    //         nextServerContext: { cookies },
-    //         operation: async (contextSpec) => {
-    //             const url = await getUrl(contextSpec, {
-    //                 path: "data/wallpaper.jpeg",
-    //                 options: {
-    //                     expiresIn: 1000,
-    //                     validateObjectExistence: true
-    //                 }
-    //             });
-    //             const session = await fetchAuthSession(contextSpec);
-    //             console.log(session.tokens?.accessToken.toString())
-    //             const res = await fetch(url.url, {
-    //                 method: 'GET',
-    //             });
-    //             return res;
-    //         }
-    //     });
-    //     console.log(data);
-    // } catch (e) {
-    //     console.log(e);
-    // }
+    console.log(rows);
 
     if (rows.length > 0) {
         return (
