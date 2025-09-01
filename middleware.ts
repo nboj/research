@@ -21,34 +21,35 @@ export async function middleware(request: NextRequest) {
         }
     });
 
-    const authorized: boolean | NextResponse = await runWithAmplifyServerContext({
-        nextServerContext: { request, response },
-        operation: async (contextSpec) => {
-            try {
-                const session = await fetchAuthSession(contextSpec);
-                console.log(session.tokens?.idToken?.payload['cognito:groups'] as string[] | undefined);
-                if ((session.tokens?.idToken?.payload['cognito:groups'] as string[] | undefined)?.find(v => v == "admin")) {
-                    return (
-                        session.tokens?.accessToken !== undefined &&
-                        session.tokens?.idToken !== undefined
-                    );
-                } else {
-                    return false
-                }
-            } catch (error) {
-                console.log(error);
-                return false;
-            }
-        }
-    });
+    //const authorized: boolean | NextResponse = await runWithAmplifyServerContext({
+    //    nextServerContext: { request, response },
+    //    operation: async (contextSpec) => {
+    //        try {
+    //            const session = await fetchAuthSession(contextSpec);
+    //            console.log(session.tokens?.idToken?.payload['cognito:groups'] as string[] | undefined);
+    //            if ((session.tokens?.idToken?.payload['cognito:groups'] as string[] | undefined)?.find(v => v == "admin")) {
+    //                return (
+    //                    session.tokens?.accessToken !== undefined &&
+    //                    session.tokens?.idToken !== undefined
+    //                );
+    //            } else {
+    //                return false
+    //            }
+    //        } catch (error) {
+    //            console.log(error);
+    //            return false;
+    //        }
+    //    }
+    //});
 
-    console.log(authenticated, authorized);
+    // console.log(authenticated, authorized);
     console.log(request.nextUrl.pathname);
 
 
-    if (authenticated && !authorized && request.nextUrl.pathname !== "/") {
-        return NextResponse.redirect(new URL('/', request.url));
-    } else if (authenticated) {
+    //if (authenticated && !authorized && request.nextUrl.pathname !== "/") {
+    //  return NextResponse.redirect(new URL('/', request.url));
+    //} else if (authenticated) {
+    if (authenticated) {
         return response
     }
 

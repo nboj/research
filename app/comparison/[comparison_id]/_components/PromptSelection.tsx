@@ -1,19 +1,13 @@
 'use client'
 
-import { Accordion, AccordionItem, Button, Checkbox, CheckboxGroup, NumberInput, Select, SelectItem, Slider, Tab, Tabs, Textarea } from "@heroui/react";
+import { Accordion, AccordionItem, Button, Checkbox, CheckboxGroup, Link, NumberInput, Select, SelectItem, Slider, Switch, Tab, Tabs, Textarea } from "@heroui/react";
 import { Key, useCallback, useEffect, useMemo, useState } from "react";
 import { generate } from "../actions/generate";
 import { Comparison, GenerateActionState, GenerateState, Generation, Medium, Race } from "../../../types";
 import generator_icon from '@/public/generator_icon.png';
 import styles from "./PromptSelection.module.css";
-
-function toDataUrl(b64: string, mime = "image/png") {
-    return `data:${mime};base64,${b64}`;
-}
-function dataURLtoBlob(dataUrl: string): Promise<Blob> {
-    // Fastest cross-browser: fetch the data URL and turn it into a Blob
-    return fetch(dataUrl).then(res => res.blob());
-}
+import { useRouter } from "next/navigation";
+import { IoIosArrowRoundBack } from "react-icons/io";
 
 const races: { race: Race }[] = [
     { race: "Tai Kadi" },
@@ -43,10 +37,24 @@ type PromptSelectionProps = Readonly<{
     id: string;
 }>
 export default function PromptSection({ generation: gen, seed, id }: PromptSelectionProps) {
-    const readonly = useMemo(() => gen?.output ? true : false, [gen])
-    const [generation, setGeneration] = useState<Generation | undefined>(gen);
+    const [readonly, setReadonly] = useState(false)
+    const [generation, setGeneration] = useState<Generation | undefined>(useMemo<Generation | undefined>(() => {
+        if (!gen) {
+            return gen;
+        }
+        if (gen.prompt) {
+            let split = gen.prompt.split(" -- ");
+            if (split.length > 1) {
+                split.pop();
+            }
+            return { ...gen, prompt: split.join("--") };
+        }
+        return { ...gen, prompt: "" };
+    }, [gen]));
     const [pending, setPending] = useState(false);
-    const [currentToken, setCurrentToken] = useState<number>(0);
+    const [useGPT, setUseGPT] = useState(false);
+    const router = useRouter();
+    //const [currentToken, setCurrentToken] = useState<number>(0);
     const handleAction = useCallback(async (e: React.FormEvent) => {
         e.preventDefault();
         try {
@@ -54,15 +62,18 @@ export default function PromptSection({ generation: gen, seed, id }: PromptSelec
                 const data = new FormData(e.target as HTMLFormElement);
                 const prompt = data.get("prompt");
                 if (!prompt) return;
+                setReadonly(true);
                 setPending(true);
                 let current_generation = structuredClone(generation);
                 current_generation.prompt = prompt as string;
-                let res = await generate(current_generation, id);
+                let res = await generate(current_generation, id, useGPT);
                 if (res.data) {
-                    current_generation.output = toDataUrl(res.data.images[0]);
-                    current_generation.output_lrp = toDataUrl(res.data.images[1]);
-                    current_generation.prompt = res.prompt as string;
-                    generation.id = "new";
+                    //current_generation.output = toDataUrl(res.data.images[0]);
+                    //current_generation.output_lrp = toDataUrl(res.data.images[1]);
+                    //current_generation.prompt = res.prompt as string;
+                    //generation.id = "new";
+
+                    router.push(`/comparison/${generation.comparison_id}`);
                 }
             } else {
                 console.error("Could not get a generation.");
@@ -71,49 +82,32 @@ export default function PromptSection({ generation: gen, seed, id }: PromptSelec
             console.log(e);
         } finally {
             setPending(false);
+            setReadonly(false);
         }
-    }, [generation]);
+    }, [generation, useGPT]);
     useEffect(() => {
         if (!generation) {
             setGeneration({ seed: seed, options: {} } as Generation)
-        } else {
-            setGeneration({ ...gen } as Generation);
         }
     }, [gen])
     useEffect(() => {
         console.log(generation);
         console.log(generation?.options?.physical_attributes?.age?.toString());
     }, [generation])
+    const handlePromptChange = ((newPrompt: string) => {
+        setGeneration((prev: any) => ({ ...prev, prompt: newPrompt }));
+    })
     return (
         <form onSubmit={handleAction} className="flex w-full h-full flex-col gap-3">
-            {
-
-                readonly ? (
-                    <div>
-                        <div className="w-full h-60 rounded-[10px] border-1 border-zinc-200">
-                            <img src={generation?.images[currentToken]} className={styles.result_image} />
-                        </div>
-                        <p>Selected: {generation?.tokens[currentToken]}</p>
-                        <div className={"flex flex-wrap"}>
-                            {
-
-                                generation?.tokens.map((token: string, index: number) => (
-                                    <span className={`${styles.token} ${index == currentToken && styles.selected}`} key={`${token}-${index}`} onClick={() => setCurrentToken(index)}>
-                                        {!token.match(/[.!?,:;]$/) ? <>&nbsp;</> : ''}
-                                        {token}
-                                    </span>
-                                ))
-
-                            }
-                        </div>
-                    </div>
-                ) : (
-                    <Textarea isDisabled={readonly} name="prompt" label="Prompt" isRequired={true} variant="bordered" color="primary" placeholder={generation?.prompt} />
-                )
-            }
+            <div className="flex flex-col">
+                <Link href={`/comparison/${generation?.comparison_id}`}><IoIosArrowRoundBack className="text-2xl" /> Back</Link>
+                <h1>{generation?.index == 0 ? "Generation A" : "Generation B"}</h1>
+            </div>
+            <Switch onValueChange={setUseGPT}>Use ChatGPT</Switch>
+            <Textarea isDisabled={readonly} name="prompt" label="Prompt" isRequired={true} variant="bordered" color="primary" value={generation?.prompt} onValueChange={handlePromptChange} />
             <div className={styles.outer_options_container}>
 
-                <Accordion className={styles.options_container} selectionMode="multiple" defaultExpandedKeys={["Medium", "Genre", "PA"]}>
+                <Accordion className={styles.options_container} selectionMode="multiple" defaultExpandedKeys={["Medium", "Genre", "PA", "Mood"]}>
                     <AccordionItem title="Medium" key="Medium">
                         <CheckboxGroup onValueChange={(v) => setGeneration((g: any) => ({ ...g, options: { ...g.options, medium: v } }))} defaultValue={gen?.options?.medium ?? generation?.options.medium ?? []} isDisabled={readonly} orientation="horizontal">
                             <Checkbox value="Digital Illustration">Digital Illustration</Checkbox>
@@ -158,7 +152,7 @@ export default function PromptSection({ generation: gen, seed, id }: PromptSelec
                         </CheckboxGroup>
                     </AccordionItem>
                 </Accordion>
-                <Accordion className={styles.options_container} selectionMode="multiple" defaultExpandedKeys={["Mood", "Technique", "Lighting"]}>
+                <Accordion className={styles.options_container} selectionMode="multiple" defaultExpandedKeys={["Technique", "Lighting", "Resolution", "Setting", "Angle"]}>
                     <AccordionItem title="Technique" key="Technique">
                         <CheckboxGroup onValueChange={(v) => setGeneration((g: any) => ({ ...g, options: { ...g.options, technique: v } }))} defaultValue={gen?.options.technique ?? generation?.options.technique ?? []} isDisabled={readonly} orientation="horizontal">
                             <Checkbox value="Blender">Blender</Checkbox>
@@ -199,7 +193,7 @@ export default function PromptSection({ generation: gen, seed, id }: PromptSelec
                         </CheckboxGroup>
                     </AccordionItem>
                     <AccordionItem title="Angle" key="Angle">
-                        <CheckboxGroup onValueChange={(v) => setGeneration((g: any) => ({ ...g, options: { ...g.options, setting: v } }))} isDisabled={readonly} defaultValue={gen?.options.setting ?? generation?.options.setting ?? []} orientation="horizontal">
+                        <CheckboxGroup onValueChange={(v) => setGeneration((g: any) => ({ ...g, options: { ...g.options, angle: v } }))} isDisabled={readonly} defaultValue={gen?.options.angle ?? generation?.options.angle ?? []} orientation="horizontal">
                             <Checkbox value="Ultra Wide">Ultra Wide</Checkbox>
                             <Checkbox value="Zenith View">Zenith View</Checkbox>
                             <Checkbox value="Cinematic View">Cinematic View</Checkbox>
@@ -209,7 +203,7 @@ export default function PromptSection({ generation: gen, seed, id }: PromptSelec
                 </Accordion>
             </div>
             {
-                !readonly && <Button isDisabled={readonly} variant='bordered' color="primary" type='submit' isLoading={pending}>{pending ? "Generating..." : "Generate"}</Button>
+                (!readonly || pending) && <Button isDisabled={readonly} variant='bordered' color="primary" type='submit' isLoading={pending}>{pending ? "Generating..." : "Generate"}</Button>
             }
         </form >
     )

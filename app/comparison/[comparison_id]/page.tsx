@@ -40,16 +40,17 @@ export default async function ComparisonPage({ params }: ComparisonPageProps) {
             FROM (
               SELECT json_build_object(
                 'id', c.id,
+                'seed', c.seed,
                 'generation_a', row_to_json(ga),
                 'generation_b', row_to_json(gb)
               ) AS comp
               FROM comparison c
               LEFT JOIN (
-                SELECT g.*, row_number() OVER (PARTITION BY g.comparison_id ORDER BY g.id) AS rn
+                SELECT g.*, row_number() OVER (PARTITION BY g.comparison_id ORDER BY g.index) AS rn
                 FROM generation g
               ) ga ON ga.comparison_id = c.id AND ga.rn = 1
               LEFT JOIN (
-                SELECT g.*, row_number() OVER (PARTITION BY g.comparison_id ORDER BY g.id) AS rn
+                SELECT g.*, row_number() OVER (PARTITION BY g.comparison_id ORDER BY g.index) AS rn
                 FROM generation g
               ) gb ON gb.comparison_id = c.id AND gb.rn = 2
               WHERE c.user_id = $1 AND c.id = $2
@@ -91,7 +92,6 @@ export default async function ComparisonPage({ params }: ComparisonPageProps) {
             image_outputs_a.push(img);
         }
     }
-    console.log("OUTPUTLRP", output_a_lrp)
     const output_b = rows[0].generation_b?.output && await getSignedUrl(
         s3,
         new GetObjectCommand({

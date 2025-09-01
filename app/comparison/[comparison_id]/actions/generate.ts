@@ -36,17 +36,19 @@ import { getSignedUrl } from '@aws-sdk/s3-request-presigner';
 //    "yolo"
 //}
 
-export const generate = async (generation: Generation, comparison_id: string): Promise<GenerateActionState> => {
+export const generate = async (generation: Generation, comparison_id: string, useGPT: boolean): Promise<GenerateActionState> => {
     console.log(generation);
+    console.log(useGPT)
     try {
         const res: any = await runWithAmplifyServerContext({
             nextServerContext: { cookies },
             operation: async (contextSpec) => {
                 try {
                     const session = await fetchAuthSession(contextSpec);
-                    let result = await fetch("http://localhost:8000/create-prompt", {
+                    let result = await fetch(`http://192.168.122.61:8000/${useGPT?"create-gpt-prompt":"create-prompt"}`, {
                         method: "POST",
                         body: JSON.stringify({
+                            userid: session.tokens?.idToken?.payload.sub,
                             prompt: generation.prompt,
                             options: { ...generation.options },
                             seed: generation.seed,
@@ -82,9 +84,10 @@ export const generate = async (generation: Generation, comparison_id: string): P
                     let generation_id = crypto.randomUUID();
 
 
+                    console.log(data.images.length)
+                    console.log(data.tokens.length)
                     console.log(comparison_id)
                     {
-
                         const key = `data/${comparison_id}/${generation_id}/output.png`;
                         const body = Buffer.from(data.images[0], "base64");
                         await s3.send(new PutObjectCommand({
@@ -110,7 +113,7 @@ export const generate = async (generation: Generation, comparison_id: string): P
                         for (let token = 0; token < data.tokens.length; token++) {
                             const key = `data/${comparison_id}/${generation_id}/${token}.png`;
                             images.push(key);
-                            const body = Buffer.from(data.images[token+2], "base64");
+                            const body = Buffer.from(data.images[token+1], "base64");
                             await s3.send(new PutObjectCommand({
                                 Bucket: process.env.BUCKET!,
                                 Key: key,
@@ -122,18 +125,17 @@ export const generate = async (generation: Generation, comparison_id: string): P
                     }
                     console.log(images)
                     await pool.query(`
-						INSERT INTO generation (id, output, output_lrp, seed, prompt, options, comparison_id, images, tokens)
-						VALUES($1, $2, $3, $4, $5, $6, $7, $8, $9)
+						UPDATE generation
+                        SET output=$1, output_lrp=$2, prompt=$3, options=$4, images=$5, tokens=$6
+                        WHERE id=$7
 					`, [
-                        generation_id,
                         `data/${comparison_id}/${generation_id}/output.png`,
                         `data/${comparison_id}/${generation_id}/output_lrp.png`,
-                        generation.seed,
                         prompt,
                         JSON.stringify(generation.options),
-                        comparison_id,
                         images,
-                        data.tokens
+                        data.tokens,
+                        generation.id
                     ]);
                     return {
                         status: result2.ok,

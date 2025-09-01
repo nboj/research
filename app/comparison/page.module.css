@@ -1,7 +1,11 @@
 .nav_item {
     display: flex;
-    width: 20rem;
+    width: 100%;
     border-radius: 5px;
+}
+
+.link {
+    flex-basis: calc(33% - 1rem);
 }
 
 .nav_item img:first-of-type {

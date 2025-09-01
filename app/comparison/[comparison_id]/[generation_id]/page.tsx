@@ -42,7 +42,7 @@ export default async function GenerationPage({ params }: GenerationPageProps) {
     };
     return (
         <div className="flex h-full w-full gap-[1rem] relative m-auto">
-            <div className="flex flex-col gap-[1rem] max-w-[800px] m-auto w-full justify-center items-center">
+            <div className="flex flex-col max-w-[1200px] m-auto w-full justify-center items-center">
                 <PromptSection id={generation.id as string} generation={generation} seed={generation.seed} />
             </div>
         </div>

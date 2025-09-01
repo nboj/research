@@ -7,7 +7,7 @@ import { revalidatePath } from "next/cache";
 import { cookies } from "next/headers";
 
 export const createComparison = async () => {
-    const seed = Math.floor(Math.random() * 10_000_000_000_000);
+    const seed = Math.floor(Math.random() * (2**32-1));
     const client = await pool.connect();
     try {
         await client.query('BEGIN');

@@ -14,8 +14,8 @@ export type GenerateActionState = Readonly<{
 export type Comparison = {
     id?: string;
     seed: string;
-    generation_a?: Generation;
-    generation_b?: Generation;
+    generation_a: Generation;
+    generation_b: Generation;
 }
 
 export type Medium = "Digital Illustration" | "Photograph" | "3D Render" | "Concept Art" | "Poster";
@@ -38,7 +38,9 @@ export type Generation = {
     output: any;
     output_log_lrp?: any;
     output_lrp: any;
+    comparison_id: string;
     prompt: string;
+    index: number;
     images: string[];
     tokens: string[];
     options: {

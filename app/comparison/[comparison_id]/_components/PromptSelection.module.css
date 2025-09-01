@@ -1,5 +1,6 @@
 .outer_options_container {
     display: flex;
+	gap: 3rem;
 }
 .options_container {
     width: 100%;

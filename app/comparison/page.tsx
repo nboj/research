@@ -15,26 +15,26 @@ import Link from "next/link";
 export const dynamic = "force-dynamic"
 
 export default async function ComparisonPage() {
-        const user_id: any = await runWithAmplifyServerContext({
-            nextServerContext: { cookies },
-            operation: async (contextSpec) => {
-                try {
-                    const session = await fetchAuthSession(contextSpec);
-                    return session.tokens?.idToken?.payload.sub;
-                } catch (e: any) {
-                    return null
-                }
+    const user_id: any = await runWithAmplifyServerContext({
+        nextServerContext: { cookies },
+        operation: async (contextSpec) => {
+            try {
+                const session = await fetchAuthSession(contextSpec);
+                return session.tokens?.idToken?.payload.sub;
+            } catch (e: any) {
+                return null
             }
-        })
-        if (!user_id) {
-            return (
-                <div className="flex w-full justify-between items-center">
-                    <CreateComparison />
-                    <DeleteComparison />
-                </div>
-            )
         }
-        const res = await pool.query(`
+    })
+    if (!user_id) {
+        return (
+            <div className="flex w-full justify-between items-center">
+                <CreateComparison />
+                <DeleteComparison />
+            </div>
+        )
+    }
+    const res = await pool.query(`
             SELECT COALESCE(json_agg(comp ORDER BY comp->>'id'), '[]'::json) AS comparison
             FROM (
               SELECT json_build_object(
@@ -54,83 +54,81 @@ export default async function ComparisonPage() {
               WHERE c.user_id = $1
             ) s;
         `, [user_id]);
-        console.log(res)
-        const rows: Comparison[] = res.rows[0].comparison;
-        console.log(rows);
-        for (let row of rows) {
-            {
-                if (row.generation_a?.output) {
-                    const output = await getSignedUrl(
-                        s3,
-                        new GetObjectCommand({
-                            Bucket: process.env.BUCKET!,
-                            Key: row.generation_a?.output,
-                        }),
-                        { expiresIn: 60 }
-                    );
-                    const output_lrp = await getSignedUrl(
-                        s3,
-                        new GetObjectCommand({
-                            Bucket: process.env.BUCKET!,
-                            Key: row.generation_a?.output_lrp,
-                        }),
-                        { expiresIn: 60 }
-                    );
-                    row.generation_a.output = output;
-                    row.generation_a.output_lrp = output_lrp;
-                }
-
+    const rows: Comparison[] = res.rows[0].comparison;
+    for (let row of rows) {
+        {
+            if (row.generation_a?.output) {
+                const output = await getSignedUrl(
+                    s3,
+                    new GetObjectCommand({
+                        Bucket: process.env.BUCKET!,
+                        Key: row.generation_a?.output,
+                    }),
+                    { expiresIn: 60 }
+                );
+                const output_lrp = await getSignedUrl(
+                    s3,
+                    new GetObjectCommand({
+                        Bucket: process.env.BUCKET!,
+                        Key: row.generation_a?.output_lrp,
+                    }),
+                    { expiresIn: 60 }
+                );
+                row.generation_a.output = output;
+                row.generation_a.output_lrp = output_lrp;
             }
-            {
 
-                if (row.generation_b?.output) {
-                    const output = await getSignedUrl(
-                        s3,
-                        new GetObjectCommand({
-                            Bucket: process.env.BUCKET!,
-                            Key: row.generation_b?.output,
-                        }),
-                        { expiresIn: 60 }
-                    );
-                    const output_lrp = await getSignedUrl(
-                        s3,
-                        new GetObjectCommand({
-                            Bucket: process.env.BUCKET!,
-                            Key: row.generation_b?.output_lrp,
-                        }),
-                        { expiresIn: 60 }
-                    );
-                    row.generation_b.output = output;
-                    row.generation_b.output_lrp = output_lrp;
-                }
+        }
+        {
+
+            if (row.generation_b?.output) {
+                const output = await getSignedUrl(
+                    s3,
+                    new GetObjectCommand({
+                        Bucket: process.env.BUCKET!,
+                        Key: row.generation_b?.output,
+                    }),
+                    { expiresIn: 60 }
+                );
+                const output_lrp = await getSignedUrl(
+                    s3,
+                    new GetObjectCommand({
+                        Bucket: process.env.BUCKET!,
+                        Key: row.generation_b?.output_lrp,
+                    }),
+                    { expiresIn: 60 }
+                );
+                row.generation_b.output = output;
+                row.generation_b.output_lrp = output_lrp;
             }
         }
-        return (
-            <>
-                <div className="flex w-full justify-center gap-[2rem] m-auto">
-                    <div className="flex flex-col w-[20rem]">
-                        <div className="flex w-full justify-between items-center">
-                            <CreateComparison />
-                            <DeleteComparison />
-                        </div>
-                        <div className="flex w-[20rem] flex-col relative">
-                            {
-                                rows.map((comparison, index) => {
-                                    return (
-                                        <Link href={`/comparison/${comparison.id}`} className="w-[20rem] relative flex flex-col" key={`${comparison.id}-${index}`} >
-                                            <div className={styles.nav_item}>
-                                                <img src={comparison?.generation_a?.output ?? generator_icon.src} alt={"Generated image."} className='object-contain w-[50%]' />
-                                                <img src={comparison?.generation_b?.output ?? generator_icon.src} alt={"Generated image."} className='object-contain w-[50%]' />
-                                            </div>
-                                            <p className='w-full text-sm'>{comparison.generation_a?.prompt ?? comparison.generation_b?.prompt}</p>
-                                        </Link>
-                                    )
-                                })
-                            }
-                        </div>
+    }
+    return (
+        <>
+            <div className="flex w-full justify-center gap-[2rem] m-auto">
+                <div className="flex flex-col gap-[1rem] max-w-[1200px]">
+                    <Link href="/api/auth/sign-out">Sign Out</Link>
+                    <div className="flex w-full justify-between items-center">
+                        <CreateComparison />
+                        <DeleteComparison />
+                    </div>
+                    <div className="flex relative w-full flex-wrap gap-[1rem] justify-between">
+                        {
+                            rows.map((comparison, index) => {
+                                return (
+                                    <Link href={`/comparison/${comparison.id}`} className={`${styles.link} relative flex flex-col`} key={`${comparison.id}-${index}`} >
+                                        <div className={styles.nav_item}>
+                                            <img src={comparison?.generation_a?.output ?? generator_icon.src} alt={"Generated image."} className='object-contain w-[50%]' />
+                                            <img src={comparison?.generation_b?.output ?? generator_icon.src} alt={"Generated image."} className='object-contain w-[50%]' />
+                                        </div>
+                                        <p className='w-full text-sm'>{comparison.generation_a?.prompt ?? comparison.generation_b?.prompt}</p>
+                                    </Link>
+                                )
+                            })
+                        }
                     </div>
                 </div>
-                <a href="/api/auth/sign-out">Sign Out</a>
-            </>
-        )
+            </div>
+        </>
+    )
 }
