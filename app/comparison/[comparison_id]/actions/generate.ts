@@ -45,7 +45,7 @@ export const generate = async (generation: Generation, comparison_id: string, us
             operation: async (contextSpec) => {
                 try {
                     const session = await fetchAuthSession(contextSpec);
-                    let result = await fetch(`http://192.168.122.61:8000/${useGPT?"create-gpt-prompt":"create-prompt"}`, {
+                    let result = await fetch(`${process.env.BACKEND}/${useGPT?"create-gpt-prompt":"create-prompt"}`, {
                         method: "POST",
                         body: JSON.stringify({
                             userid: session.tokens?.idToken?.payload.sub,
@@ -68,7 +68,7 @@ export const generate = async (generation: Generation, comparison_id: string, us
                     console.log("GENERATING...");
                     console.log();
                     console.log();
-                    let result2 = await fetch("http://192.168.122.61:8000/generate", {
+                    let result2 = await fetch(`${process.env.BACKEND}/generate`, {
                         method: "POST",
                         body: JSON.stringify({
                             userid: session.tokens?.idToken?.payload.sub,

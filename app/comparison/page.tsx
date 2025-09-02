@@ -106,22 +106,22 @@ export default async function ComparisonPage() {
     return (
         <>
             <div className="flex w-full justify-center gap-[2rem] m-auto">
-                <div className="flex flex-col gap-[1rem] max-w-[1200px]">
-                    <Link href="/api/auth/sign-out">Sign Out</Link>
-                    <div className="flex w-full justify-between items-center">
+                <div className="flex flex-col gap-[1rem] max-w-[1200px] w-fit">
+                    <Link href="/api/auth/sign-out" className="w-fit">Sign Out</Link>
+                    <div className="flex w-fit items-center">
                         <CreateComparison />
                         <DeleteComparison />
                     </div>
-                    <div className="flex relative w-full flex-wrap gap-[1rem] justify-between">
+                    <div className={styles.nav_container}>
                         {
                             rows.map((comparison, index) => {
                                 return (
-                                    <Link href={`/comparison/${comparison.id}`} className={`${styles.link} relative flex flex-col`} key={`${comparison.id}-${index}`} >
+                                    <Link href={`/comparison/${comparison.id}`} className={`${styles.link}`} key={`${comparison.id}-${index}`} >
                                         <div className={styles.nav_item}>
                                             <img src={comparison?.generation_a?.output ?? generator_icon.src} alt={"Generated image."} className='object-contain w-[50%]' />
                                             <img src={comparison?.generation_b?.output ?? generator_icon.src} alt={"Generated image."} className='object-contain w-[50%]' />
                                         </div>
-                                        <p className='w-full text-sm'>{comparison.generation_a?.prompt ?? comparison.generation_b?.prompt}</p>
+                                        <p className={styles.prompt}>{comparison.generation_a?.prompt ?? comparison.generation_b?.prompt}</p>
                                     </Link>
                                 )
                             })
