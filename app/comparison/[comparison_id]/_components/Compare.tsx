@@ -24,8 +24,9 @@ const OptionItem = ({ title, body }: OptionItemProps) => {
 
 interface CompareGenerationProps {
     generation: Generation
+    other?: Generation
 }
-const CompareGeneration = ({ generation }: CompareGenerationProps) => {
+const CompareGeneration = ({ generation, other }: CompareGenerationProps) => {
     const [currentToken, setCurrentToken] = useState(0);
     console.log(generation);
     if (generation?.output) {
@@ -46,11 +47,19 @@ const CompareGeneration = ({ generation }: CompareGenerationProps) => {
                     <p>Selected: {generation?.tokens[currentToken]}</p>
                     <div className={"flex flex-wrap"}>
                         {
-                            generation?.tokens.map((token: string, index: number) => (
-                                <span className={`${styles.token} ${index == currentToken && styles.selected}`} key={`${token}-${index}`} onClick={() => setCurrentToken(index)}>
-                                    &nbsp;{token}
-                                </span>
-                            ))
+                            generation?.tokens.map((token: string, index: number) => {
+                                let found = other?.tokens?.length ?? 0 > 0 ? false : true;
+                                other?.tokens.forEach((tok) => {
+                                    if (tok === token) {
+                                        found = true;
+                                    }
+                                })
+                                return(
+                                    <span className={`${styles.token} ${!found && styles.token_diff} ${index == currentToken && styles.selected}`} key={`${token}-${index}`} onClick={() => setCurrentToken(index)}>
+                                        &nbsp;{token}
+                                    </span>
+                                )
+                            })
                         }
                     </div>
                 </div>
@@ -88,8 +97,8 @@ export default function Compare({ comparison }: CompareProps) {
             <Link href="/comparison"><IoIosArrowRoundBack className="text-2xl" /> Back</Link>
             <h1 className="text-2xl font-normal">Compare</h1>
             <div className="flex gap-[1rem]">
-                <CompareGeneration generation={comparison.generation_a} />
-                <CompareGeneration generation={comparison.generation_b} />
+                <CompareGeneration generation={comparison.generation_a}  other={comparison.generation_b} />
+                <CompareGeneration generation={comparison.generation_b} other={comparison.generation_a} />
             </div>
         </div >
     );

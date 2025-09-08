@@ -8,6 +8,10 @@
 	cursor: pointer;
 }
 
+.token_diff {
+	background-color: var(--color-red-400);
+}
+
 .token:hover {
 	color: red;
 }
