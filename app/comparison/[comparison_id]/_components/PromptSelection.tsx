@@ -103,7 +103,7 @@ export default function PromptSection({ generation: gen, seed, id }: PromptSelec
                 <Link href={`/comparison/${generation?.comparison_id}`}><IoIosArrowRoundBack className="text-2xl" /> Back</Link>
                 <h1>{generation?.index == 0 ? "Generation A" : "Generation B"}</h1>
             </div>
-            <Switch onValueChange={setUseGPT}>Use ChatGPT</Switch>
+            <Switch onValueChange={setUseGPT}>Use LLM</Switch>
             <Textarea isDisabled={readonly} name="prompt" label="Prompt" isRequired={true} variant="bordered" color="primary" value={generation?.prompt} onValueChange={handlePromptChange} />
             <div className={styles.outer_options_container}>
 

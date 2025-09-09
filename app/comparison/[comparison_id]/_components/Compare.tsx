@@ -64,15 +64,15 @@ const CompareGeneration = ({ generation, other }: CompareGenerationProps) => {
                     </div>
                 </div>
                 <div>
-                    { generation.options.medium && <OptionItem title="Medium" body={generation.options.medium?.join(", ") as ""}/> }
-                    { generation.options.genre && <OptionItem title="Genre" body={generation.options.genre?.join(", ") as ""}/> }
-                    { generation.options.physical_attributes && <OptionItem title="Physical Attributes" body={[`${generation.options.physical_attributes?.age} years old`, generation.options.physical_attributes?.race].join(", ")}/> }
-                    { generation.options.mood && <OptionItem title="Mood" body={generation.options.mood?.join(", ") as ""}/> }
-                    { generation.options.technique && <OptionItem title="Technique" body={generation.options.technique?.join(", ") as ""}/> }
-                    { generation.options.lighting && <OptionItem title="Lighting" body={generation.options.lighting?.join(", ") as ""}/> }
-                    { generation.options.resolution && <OptionItem title="Resolution" body={generation.options.resolution?.join(", ") as ""}/> }
-                    { generation.options.setting && <OptionItem title="Setting" body={generation.options.setting?.join(", ") as ""}/> }
-                    { generation.options.angle && <OptionItem title="Angle" body={generation.options.angle?.join(", ") as ""}/> }
+                    { generation.options.medium && generation.options.medium.length > 0 && <OptionItem title="Medium" body={generation.options.medium?.join(", ") as ""}/> }
+                    { generation.options.genre  && generation.options.genre.length > 0 && <OptionItem title="Genre" body={generation.options.genre?.join(", ") as ""}/> }
+                    { generation.options.physical_attributes  && <OptionItem title="Physical Attributes" body={[`${generation.options.physical_attributes?.age} years old`, generation.options.physical_attributes?.race].join(", ")}/> }
+                    { generation.options.mood  && generation.options.mood.length > 0 && <OptionItem title="Mood" body={generation.options.mood?.join(", ") as ""}/> }
+                    { generation.options.technique  && generation.options.technique.length > 0 && <OptionItem title="Technique" body={generation.options.technique?.join(", ") as ""}/> }
+                    { generation.options.lighting  && generation.options.lighting.length > 0 && <OptionItem title="Lighting" body={generation.options.lighting?.join(", ") as ""}/> }
+                    { generation.options.resolution  && generation.options.resolution.length > 0 && <OptionItem title="Resolution" body={generation.options.resolution?.join(", ") as ""}/> }
+                    { generation.options.setting  && generation.options.setting.length > 0 && <OptionItem title="Setting" body={generation.options.setting?.join(", ") as ""}/> }
+                    { generation.options.angle  && generation.options.angle.length > 0 && <OptionItem title="Angle" body={generation.options.angle?.join(", ") as ""}/> }
                 </div>
                 <div className="h-full flex items-end">
                     <Button as={Link} href={`/comparison/${generation.comparison_id}/${generation.id}`}>Edit</Button>

@@ -109,20 +109,22 @@ export const generate = async (generation: Generation, comparison_id: string, us
                         }));
                     }
                     let images = [];
+                    let awaits = [];
                     {
                         for (let token = 0; token < data.tokens.length; token++) {
                             const key = `data/${comparison_id}/${generation_id}/${token}.png`;
                             images.push(key);
                             const body = Buffer.from(data.images[token+1], "base64");
-                            await s3.send(new PutObjectCommand({
+                            awaits.push(s3.send(new PutObjectCommand({
                                 Bucket: process.env.BUCKET!,
                                 Key: key,
                                 Body: body,
                                 ContentType: "image/png",
-                            }));
+                            })));
                         }
 
                     }
+                    await Promise.all(awaits)
                     console.log(images)
                     await pool.query(`
 						UPDATE generation
