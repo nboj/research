@@ -39,7 +39,7 @@ const CompareGeneration = ({ generation, other }: CompareGenerationProps) => {
                             <Image src={generation.output} className={styles.result_image} fill alt="" />
                         </div>
                         <div className={styles.result}>
-                            <Image src={generation?.images[currentToken]} className={styles.result_image} fill alt={""} />
+                            <Image src={generation?.images[currentToken]} className={`${styles.result_image} ${styles.daam_image}`} fill alt={""} />
                         </div>
                     </div>
                 </div>
@@ -49,7 +49,7 @@ const CompareGeneration = ({ generation, other }: CompareGenerationProps) => {
                         {
                             generation?.tokens.map((token: string, index: number) => {
                                 let found = other?.tokens?.length ?? 0 > 0 ? false : true;
-                                other?.tokens.forEach((tok) => {
+                                other?.tokens?.forEach((tok) => {
                                     if (tok === token) {
                                         found = true;
                                     }

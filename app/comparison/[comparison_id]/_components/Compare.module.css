@@ -4,6 +4,10 @@
 	border-radius: 10px;
 }
 
+.daam_image {
+	border: none;
+}
+
 .token {
 	cursor: pointer;
 }
