@@ -13,7 +13,7 @@
 }
 
 .token_diff {
-	background-color: var(--color-red-400);
+	background-color: var(--color-yellow-400);
 }
 
 .token:hover {
