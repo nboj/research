@@ -70,7 +70,7 @@ export default async function ComparisonPage({ params }: ComparisonPageProps) {
         }),
         { expiresIn: 60 * 60 }
     );
-    const output_a_lrp = rows[0].generation_a?.output && await getSignedUrl(
+    const output_a_lrp = rows[0].generation_a?.output_lrp && await getSignedUrl(
         s3,
         new GetObjectCommand({
             Bucket: process.env.BUCKET!,
@@ -100,7 +100,7 @@ export default async function ComparisonPage({ params }: ComparisonPageProps) {
         }),
         { expiresIn: 60 * 60 }
     );
-    const output_b_lrp = rows[0].generation_b?.output && await getSignedUrl(
+    const output_b_lrp = rows[0].generation_b?.output_lrp && await getSignedUrl(
         s3,
         new GetObjectCommand({
             Bucket: process.env.BUCKET!,
@@ -145,7 +145,7 @@ export default async function ComparisonPage({ params }: ComparisonPageProps) {
     }
     console.log(rows);
 
-    if (rows.length > 0) {
+    if (rows?.length > 0) {
         return (
             <Compare comparison={comparison} />
         )

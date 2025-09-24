@@ -3,9 +3,12 @@
 import { Comparison, Generation } from "../../../types";
 import Image from 'next/image'
 import styles from './Compare.module.css'
-import { useState } from "react";
+import { useContext, useEffect, useState } from "react";
 import { Button, Link } from "@heroui/react";
 import { IoIosArrowRoundBack } from "react-icons/io";
+import { SocketContext } from "@/app/Providers";
+import { usePathname } from "next/navigation";
+import { update } from "../actions/update";
 
 interface OptionItemProps {
     title: string;
@@ -54,7 +57,7 @@ const CompareGeneration = ({ generation, other }: CompareGenerationProps) => {
                                         found = true;
                                     }
                                 })
-                                return(
+                                return (
                                     <span className={`${styles.token} ${!found && styles.token_diff} ${index == currentToken && styles.selected}`} key={`${token}-${index}`} onClick={() => setCurrentToken(index)}>
                                         &nbsp;{token}
                                     </span>
@@ -64,15 +67,15 @@ const CompareGeneration = ({ generation, other }: CompareGenerationProps) => {
                     </div>
                 </div>
                 <div>
-                    { generation.options.medium && generation.options.medium.length > 0 && <OptionItem title="Medium" body={generation.options.medium?.join(", ") as ""}/> }
-                    { generation.options.genre  && generation.options.genre.length > 0 && <OptionItem title="Genre" body={generation.options.genre?.join(", ") as ""}/> }
-                    { generation.options.physical_attributes  && <OptionItem title="Physical Attributes" body={[`${generation.options.physical_attributes?.age} years old`, generation.options.physical_attributes?.race].join(", ")}/> }
-                    { generation.options.mood  && generation.options.mood.length > 0 && <OptionItem title="Mood" body={generation.options.mood?.join(", ") as ""}/> }
-                    { generation.options.technique  && generation.options.technique.length > 0 && <OptionItem title="Technique" body={generation.options.technique?.join(", ") as ""}/> }
-                    { generation.options.lighting  && generation.options.lighting.length > 0 && <OptionItem title="Lighting" body={generation.options.lighting?.join(", ") as ""}/> }
-                    { generation.options.resolution  && generation.options.resolution.length > 0 && <OptionItem title="Resolution" body={generation.options.resolution?.join(", ") as ""}/> }
-                    { generation.options.setting  && generation.options.setting.length > 0 && <OptionItem title="Setting" body={generation.options.setting?.join(", ") as ""}/> }
-                    { generation.options.angle  && generation.options.angle.length > 0 && <OptionItem title="Angle" body={generation.options.angle?.join(", ") as ""}/> }
+                    {generation.options.medium && generation.options.medium.length > 0 && <OptionItem title="Medium" body={generation.options.medium?.join(", ") as ""} />}
+                    {generation.options.genre && generation.options.genre.length > 0 && <OptionItem title="Genre" body={generation.options.genre?.join(", ") as ""} />}
+                    {generation.options.physical_attributes && <OptionItem title="Physical Attributes" body={[`${generation.options.physical_attributes?.age} years old`, generation.options.physical_attributes?.race].join(", ")} />}
+                    {generation.options.mood && generation.options.mood.length > 0 && <OptionItem title="Mood" body={generation.options.mood?.join(", ") as ""} />}
+                    {generation.options.technique && generation.options.technique.length > 0 && <OptionItem title="Technique" body={generation.options.technique?.join(", ") as ""} />}
+                    {generation.options.lighting && generation.options.lighting.length > 0 && <OptionItem title="Lighting" body={generation.options.lighting?.join(", ") as ""} />}
+                    {generation.options.resolution && generation.options.resolution.length > 0 && <OptionItem title="Resolution" body={generation.options.resolution?.join(", ") as ""} />}
+                    {generation.options.setting && generation.options.setting.length > 0 && <OptionItem title="Setting" body={generation.options.setting?.join(", ") as ""} />}
+                    {generation.options.angle && generation.options.angle.length > 0 && <OptionItem title="Angle" body={generation.options.angle?.join(", ") as ""} />}
                 </div>
                 <div className="h-full flex items-end">
                     <Button as={Link} href={`/comparison/${generation.comparison_id}/${generation.id}`}>Edit</Button>
@@ -92,12 +95,29 @@ type CompareProps = Readonly<{
     comparison: Comparison;
 }>
 export default function Compare({ comparison }: CompareProps) {
+    const websocket = useContext(SocketContext);
+    const path = usePathname();
+    useEffect(() => {
+        const onMessage = (event: any) => {
+            console.log("EVENT: ", event);
+            switch (JSON.parse(event.data).type) {
+                case "generation_complete": 
+                    console.log("REVALIDATING");
+                    update(path)
+                    break;
+            }
+        };
+        websocket?.current?.addEventListener("message", onMessage);
+        return () => {
+            websocket?.current?.removeEventListener("message", onMessage);
+        }
+    }, [websocket?.current])
     return (
         <div className="relative @container h-full flex flex-col justify-center gap-[1rem] w-full max-w-[1200px]">
             <Link href="/comparison"><IoIosArrowRoundBack className="text-2xl" /> Back</Link>
             <h1 className="text-2xl font-normal">Compare</h1>
             <div className="flex gap-[1rem]">
-                <CompareGeneration generation={comparison.generation_a}  other={comparison.generation_b} />
+                <CompareGeneration generation={comparison.generation_a} other={comparison.generation_b} />
                 <CompareGeneration generation={comparison.generation_b} other={comparison.generation_a} />
             </div>
         </div >

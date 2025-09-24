@@ -1,13 +1,14 @@
 'use client'
 
 import { Accordion, AccordionItem, Button, Checkbox, CheckboxGroup, Link, NumberInput, Select, SelectItem, Slider, Switch, Tab, Tabs, Textarea } from "@heroui/react";
-import { Key, useCallback, useEffect, useMemo, useState } from "react";
+import { Key, RefObject, useCallback, useContext, useEffect, useMemo, useRef, useState } from "react";
 import { generate } from "../actions/generate";
 import { Comparison, GenerateActionState, GenerateState, Generation, Medium, Race } from "../../../types";
 import generator_icon from '@/public/generator_icon.png';
 import styles from "./PromptSelection.module.css";
 import { useRouter } from "next/navigation";
 import { IoIosArrowRoundBack } from "react-icons/io";
+import { SocketContext } from "@/app/Providers";
 
 const races: { race: Race }[] = [
     { race: "Tai Kadi" },
@@ -53,6 +54,7 @@ export default function PromptSection({ generation: gen, seed, id }: PromptSelec
     }, [gen]));
     const [pending, setPending] = useState(false);
     const [useGPT, setUseGPT] = useState(false);
+    const websocket = useContext(SocketContext);
     const router = useRouter();
     //const [currentToken, setCurrentToken] = useState<number>(0);
     const handleAction = useCallback(async (e: React.FormEvent) => {
@@ -60,20 +62,25 @@ export default function PromptSection({ generation: gen, seed, id }: PromptSelec
         try {
             if (generation) {
                 const data = new FormData(e.target as HTMLFormElement);
-                const prompt = data.get("prompt");
-                if (!prompt) return;
+                const raw_prompt = data.get("prompt");
+                if (!raw_prompt) return;
                 setReadonly(true);
                 setPending(true);
                 let current_generation = structuredClone(generation);
-                current_generation.prompt = prompt as string;
+                current_generation.prompt = raw_prompt as string;
                 let res = await generate(current_generation, id, useGPT);
-                if (res.data) {
+                console.log("RES", res);
+                if  (res?.prompt && res?.userid && websocket?.current) {
+                    console.log("HEREREERE");
+                    websocket.current.send(JSON.stringify({type: "generate", prompt: res.prompt, seed: generation.seed, userid: res.userid, generation_id: generation.id, comparison_id: generation.comparison_id, options: generation.options}));
                     //current_generation.output = toDataUrl(res.data.images[0]);
                     //current_generation.output_lrp = toDataUrl(res.data.images[1]);
                     //current_generation.prompt = res.prompt as string;
                     //generation.id = "new";
 
                     router.push(`/comparison/${generation.comparison_id}`);
+                } else if (websocket) {
+                    console.log("never made it", websocket.current, res);
                 }
             } else {
                 console.error("Could not get a generation.");
@@ -94,6 +101,20 @@ export default function PromptSection({ generation: gen, seed, id }: PromptSelec
         console.log(generation);
         console.log(generation?.options?.physical_attributes?.age?.toString());
     }, [generation])
+
+    useEffect(() => {
+        const onMessage = (event: Event) => {
+            console.log("EVENT: ", event);
+            switch (event.type) {
+                case "GenerationComplete": 
+                    break;
+            }
+        };
+        websocket?.current?.addEventListener("message", onMessage);
+        return () => {
+            websocket?.current?.removeEventListener("message", onMessage);
+        }
+    }, [websocket?.current])
     const handlePromptChange = ((newPrompt: string) => {
         setGeneration((prev: any) => ({ ...prev, prompt: newPrompt }));
     })

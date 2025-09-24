@@ -6,8 +6,9 @@ export enum GenerateState {
 
 export type GenerateActionState = Readonly<{
     state: GenerateState;
-    data?: {tokens: string[], images: string[]};
+    //data?: {tokens: string[], images: string[]};
     prompt?: string;
+    userid?: string;
 }>
 
 

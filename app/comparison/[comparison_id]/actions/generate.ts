@@ -60,89 +60,84 @@ export const generate = async (generation: Generation, comparison_id: string, us
                     console.log(result);
                     let prompt = await result.json();
                     if (!result.ok) {
+                        console.log("RESULT WAS NOT OK");
                         return result;
                     }
-                    console.log(prompt);
-                    console.log();
-                    console.log();
-                    console.log("GENERATING...");
-                    console.log();
-                    console.log();
-                    let result2 = await fetch(`${process.env.BACKEND}/generate`, {
-                        method: "POST",
-                        body: JSON.stringify({
-                            userid: session.tokens?.idToken?.payload.sub,
-                            prompt: prompt,
-                            seed: generation.seed,
-                        }),
-                        headers: {
-                            "Content-Type": "application/json"
-                        }
-                    })
-                    let data: { tokens: string[], images: string[] } = await result2.json();
+                    //let result2 = await fetch(`${process.env.BACKEND}/generate`, {
+                    //    method: "POST",
+                    //    body: JSON.stringify({
+                    //        userid: session.tokens?.idToken?.payload.sub,
+                    //        prompt: prompt,
+                    //        seed: generation.seed,
+                    //    }),
+                    //    headers: {
+                    //        "Content-Type": "application/json"
+                    //    }
+                    //})
+                    //let data: { tokens: string[], images: string[] } = await result2.json();
 
-                    let generation_id = crypto.randomUUID();
+                    //let generation_id = crypto.randomUUID();
 
 
-                    console.log(data.images.length)
-                    console.log(data.tokens.length)
-                    console.log(comparison_id)
-                    {
-                        const key = `data/${comparison_id}/${generation_id}/output.png`;
-                        const body = Buffer.from(data.images[0], "base64");
-                        await s3.send(new PutObjectCommand({
-                            Bucket: process.env.BUCKET!,
-                            Key: key,
-                            Body: body,
-                            ContentType: "image/png",
-                        }));
-                    }
-                    {
+                    //console.log(data.images.length)
+                    //console.log(data.tokens.length)
+                    //console.log(comparison_id)
+                    //{
+                    //    const key = `data/${comparison_id}/${generation_id}/output.png`;
+                    //    const body = Buffer.from(data.images[0], "base64");
+                    //    await s3.send(new PutObjectCommand({
+                    //        Bucket: process.env.BUCKET!,
+                    //        Key: key,
+                    //        Body: body,
+                    //        ContentType: "image/png",
+                    //    }));
+                    //}
+                    //{
 
-                        const key = `data/${comparison_id}/${generation_id}/output_lrp.png`;
-                        const body = Buffer.from(data.images[1], "base64");
-                        await s3.send(new PutObjectCommand({
-                            Bucket: process.env.BUCKET!,
-                            Key: key,
-                            Body: body,
-                            ContentType: "image/png",
-                        }));
-                    }
-                    let images = [];
-                    let awaits = [];
-                    {
-                        for (let token = 0; token < data.tokens.length; token++) {
-                            const key = `data/${comparison_id}/${generation_id}/${token}.png`;
-                            images.push(key);
-                            const body = Buffer.from(data.images[token+1], "base64");
-                            awaits.push(s3.send(new PutObjectCommand({
-                                Bucket: process.env.BUCKET!,
-                                Key: key,
-                                Body: body,
-                                ContentType: "image/png",
-                            })));
-                        }
+                    //    const key = `data/${comparison_id}/${generation_id}/output_lrp.png`;
+                    //    const body = Buffer.from(data.images[1], "base64");
+                    //    await s3.send(new PutObjectCommand({
+                    //        Bucket: process.env.BUCKET!,
+                    //        Key: key,
+                    //        Body: body,
+                    //        ContentType: "image/png",
+                    //    }));
+                    //}
+                    //let images = [];
+                    //let awaits = [];
+                    //{
+                    //    for (let token = 0; token < data.tokens.length; token++) {
+                    //        const key = `data/${comparison_id}/${generation_id}/${token}.png`;
+                    //        images.push(key);
+                    //        const body = Buffer.from(data.images[token+1], "base64");
+                    //        awaits.push(s3.send(new PutObjectCommand({
+                    //            Bucket: process.env.BUCKET!,
+                    //            Key: key,
+                    //            Body: body,
+                    //            ContentType: "image/png",
+                    //        })));
+                    //    }
 
-                    }
-                    await Promise.all(awaits)
-                    console.log(images)
-                    await pool.query(`
-						UPDATE generation
-                        SET output=$1, output_lrp=$2, prompt=$3, options=$4, images=$5, tokens=$6
-                        WHERE id=$7
-					`, [
-                        `data/${comparison_id}/${generation_id}/output.png`,
-                        `data/${comparison_id}/${generation_id}/output_lrp.png`,
-                        prompt,
-                        JSON.stringify(generation.options),
-                        images,
-                        data.tokens,
-                        generation.id
-                    ]);
+                    //}
+                    //await Promise.all(awaits)
+                    //console.log(images)
+                    //await pool.query(`
+					//	UPDATE generation
+                    //    SET output=$1, output_lrp=$2, prompt=$3, options=$4, images=$5, tokens=$6
+                    //    WHERE id=$7
+					//`, [
+                    //    `data/${comparison_id}/${generation_id}/output.png`,
+                    //    `data/${comparison_id}/${generation_id}/output_lrp.png`,
+                    //    prompt,
+                    //    JSON.stringify(generation.options),
+                    //    images,
+                    //    data.tokens,
+                    //    generation.id
+                    //]);
                     return {
-                        status: result2.ok,
-                        data: { images: data.images, tokens: data.tokens },
+                        status: true,
                         prompt: prompt,
+                        userid: session.tokens?.idToken?.payload.sub,
                     };
                 } catch (error) {
                     console.error(typeof error, error);
@@ -153,8 +148,9 @@ export const generate = async (generation: Generation, comparison_id: string, us
         if (res && res.status) {
             return {
                 state: GenerateState.SUCCESS,
-                data: res.data,
+                //data: res.data,
                 prompt: res.prompt,
+                userid: res.userid
             }
         } else {
             console.log(res)
