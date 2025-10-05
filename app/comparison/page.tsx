@@ -66,16 +66,7 @@ export default async function ComparisonPage() {
                     }),
                     { expiresIn: 60 }
                 );
-                const output_lrp = await getSignedUrl(
-                    s3,
-                    new GetObjectCommand({
-                        Bucket: process.env.BUCKET!,
-                        Key: row.generation_a?.output_lrp,
-                    }),
-                    { expiresIn: 60 }
-                );
                 row.generation_a.output = output;
-                row.generation_a.output_lrp = output_lrp;
             }
 
         }
@@ -90,16 +81,7 @@ export default async function ComparisonPage() {
                     }),
                     { expiresIn: 60 }
                 );
-                const output_lrp = await getSignedUrl(
-                    s3,
-                    new GetObjectCommand({
-                        Bucket: process.env.BUCKET!,
-                        Key: row.generation_b?.output_lrp,
-                    }),
-                    { expiresIn: 60 }
-                );
                 row.generation_b.output = output;
-                row.generation_b.output_lrp = output_lrp;
             }
         }
     }
