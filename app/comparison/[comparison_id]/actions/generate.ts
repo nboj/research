@@ -155,13 +155,15 @@ export const generate = async (generation: Generation, comparison_id: string, us
         } else {
             console.log(res)
             return {
-                state: GenerateState.ERROR
+                state: GenerateState.ERROR,
+                msg: res
             }
         }
-    } catch (e) {
+    } catch (e:any) {
         console.log(typeof e, e);
         return {
-            state: GenerateState.ERROR
+            state: GenerateState.ERROR,
+            msg: e
         }
     }
 } 

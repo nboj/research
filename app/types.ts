@@ -9,6 +9,7 @@ export type GenerateActionState = Readonly<{
     //data?: {tokens: string[], images: string[]};
     prompt?: string;
     userid?: string;
+    msg?:string;
 }>
 
 
