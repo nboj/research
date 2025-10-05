@@ -39,18 +39,18 @@ const CompareGeneration = ({ generation, other }: CompareGenerationProps) => {
                     <h1 className="text-xl">{generation?.index == 0 ? "Generation A" : "Generation B"}</h1>
                     <div className={styles.result_container}>
                         <div className={styles.result}>
-                            <Image src={generation.output} className={styles.result_image} fill alt="" />
+                            <img src={generation.output} className={styles.result_image} alt="" />
                         </div>
                         <div className={styles.result}>
-                            <Image src={generation?.images[currentToken]} className={`${styles.result_image} ${styles.daam_image}`} fill alt={""} />
+                            <img src={generation?.images[currentToken]} className={`${styles.result_image} ${styles.daam_image}`} alt={""} />
                         </div>
                     </div>
                 </div>
                 <div>
-                    <p>Selected: {generation?.tokens[currentToken]}</p>
+                    <p>Selected: {generation?.tokens && generation.tokens[currentToken]}</p>
                     <div className={"flex flex-wrap"}>
                         {
-                            generation?.tokens.map((token: string, index: number) => {
+                            generation?.tokens && generation.tokens.map((token: string, index: number) => {
                                 let found = other?.tokens?.length ?? 0 > 0 ? false : true;
                                 other?.tokens?.forEach((tok) => {
                                     if (tok === token) {

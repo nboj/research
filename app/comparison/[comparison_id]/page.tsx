@@ -127,7 +127,6 @@ export default async function ComparisonPage({ params }: ComparisonPageProps) {
         generation_a: rows[0].generation_a && {
             ...rows[0].generation_a as any,
             output: output_a,
-            output_lrp: output_a_lrp,
             options: {
                 ...rows[0].generation_a?.options ?? {}
             },
@@ -136,7 +135,6 @@ export default async function ComparisonPage({ params }: ComparisonPageProps) {
         generation_b: rows[0].generation_b && {
             ...rows[0].generation_b as any,
             output: output_b,
-            output_lrp: output_b_lrp,
             options: {
                 ...rows[0].generation_b?.options ?? {}
             },
