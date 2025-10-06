@@ -41,6 +41,7 @@ export type Generation = {
     output_log_lrp?: any;
     output_lrp: any;
     comparison_id: string;
+    generating?: boolean;
     prompt: string;
     index: number;
     images: string[];

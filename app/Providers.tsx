@@ -18,6 +18,7 @@ export default function Providers({ children }: { children: React.ReactNode }) {
     const websocket = useRef<WebSocket>(null);
     useEffect(() => {
         const socket = new WebSocket(`https://api.research.cauman.com/ws-connect`);
+        //const socket = new WebSocket(`http://localhost:8000/ws-connect`);
         const onOpen = (_event: Event) => {
             console.log("OPENED SOCKET");
             websocket.current = socket;
