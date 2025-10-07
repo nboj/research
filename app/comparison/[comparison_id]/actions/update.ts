@@ -3,5 +3,5 @@ import { revalidatePath } from "next/cache"
 
 export const update = async (path: string) => {
     console.log(`REVALIDATING ${path}`)
-    revalidatePath(path, "layout");
+    revalidatePath(path, "page");
 }
