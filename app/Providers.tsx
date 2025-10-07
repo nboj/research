@@ -3,7 +3,7 @@
 
 import { HeroUIProvider } from '@heroui/react'
 import { useRouter } from 'next/navigation';
-import { createContext, MutableRefObject, RefObject, useEffect, useRef } from 'react';
+import { createContext, RefObject, useEffect, useRef } from 'react';
 
 declare module "@react-types/shared" {
   interface RouterConfig {
@@ -23,9 +23,19 @@ export default function Providers({ children }: { children: React.ReactNode }) {
             console.log("OPENED SOCKET");
             websocket.current = socket;
         };
+        const onError = (_event: Event) => {
+            alert("Error occured connecting to the websocket. Please refresh the page.")
+        }
+        const onClose = (_event: Event) => {
+            alert("Connection to websocket closet! Please refresh the page to reconnect.")
+        }
         socket.addEventListener("open", onOpen);
+        socket.addEventListener("error", onError);
+        socket.addEventListener("close", onClose);
         return () => {
             socket.removeEventListener("open", onOpen);
+            socket.removeEventListener("error", onError);
+            socket.removeEventListener("close", onClose);
         }
     }, [])
     return (

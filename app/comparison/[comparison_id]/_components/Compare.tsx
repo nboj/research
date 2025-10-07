@@ -1,7 +1,6 @@
 "use client";
 
 import { Comparison, Generation } from "../../../types";
-import Image from "next/image";
 import styles from "./Compare.module.css";
 import { useContext, useEffect, useState } from "react";
 import { Button, Link, Spinner } from "@heroui/react";
@@ -156,9 +155,12 @@ const CompareGeneration = ({ generation, other }: CompareGenerationProps) => {
     } else {
         return (
             <div>
-                <Link href={`/comparison/${generation.comparison_id}/${generation.id}`}>
+                <Button
+                    as={Link}
+                    href={`/comparison/${generation.comparison_id}/${generation.id}`}
+                >
                     Edit
-                </Link>
+                </Button>
             </div>
         );
     }

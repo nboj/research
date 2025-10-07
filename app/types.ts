@@ -22,7 +22,7 @@ export type Comparison = {
 
 export type Medium = "Digital Illustration" | "Photograph" | "3D Render" | "Concept Art" | "Poster";
 export type Genre = "Anime" | "Surreal" | "Baroque" | "Photorealistic" | "Sci-Fi" | "Black & White" | "Fantasy" | "Film Noir";
-export type Race = "Tai Kadi" | "Caucasion" | "African American" | "Asian" | "Hispanic" | "Korean";
+export type Race = "Tai Kadai" | "Caucasion" | "African American" | "Asian" | "Hispanic" | "Korean";
 export type PhysicalAttribute = {
     age?: number;
     race?: Race;

@@ -30,7 +30,6 @@ export default async function ComparisonPage() {
         return (
             <div className="flex w-full justify-between items-center">
                 <CreateComparison />
-                <DeleteComparison />
             </div>
         )
     }
@@ -90,9 +89,8 @@ export default async function ComparisonPage() {
             <div className="flex w-full justify-center gap-[2rem] m-auto">
                 <div className="flex flex-col gap-[1rem] max-w-[1200px] w-fit">
                     <Link href="/api/auth/sign-out" className="w-fit">Sign Out</Link>
-                    <div className="flex w-fit items-center">
+                    <div className="flex items-center justify-between">
                         <CreateComparison />
-                        <DeleteComparison />
                     </div>
                     <div className={styles.nav_container}>
                         {

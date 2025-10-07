@@ -1,12 +1,6 @@
-'use client'
-
 import Link from "next/link";
+import { redirect } from "next/navigation";
 
-export default function Home() {
-    return (
-        <div className="flex flex-col">
-            <Link href="/comparison">Comparisons</Link>
-            <Link href="/api/auth/sign-out">Sign Out</Link>
-        </div>
-    );
+export default async function Home() {
+    return redirect("/comparison")
 }

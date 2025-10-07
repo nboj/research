@@ -11,7 +11,7 @@ import { IoIosArrowRoundBack } from "react-icons/io";
 import { SocketContext } from "@/app/Providers";
 
 const races: { race: Race }[] = [
-    { race: "Tai Kadi" },
+    { race: "Tai Kadai" },
     { race: "Asian" },
     { race: "African American" },
     { race: "Caucasion" },
@@ -79,6 +79,8 @@ export default function PromptSection({ generation: gen, seed, id }: PromptSelec
                     //generation.id = "new";
 
                     router.push(`/comparison/${generation.comparison_id}`);
+                } else if (websocket?.current?.CLOSED) {
+                    alert("Websocket closed connection, please remember your selections and refresh this page")
                 } else if (websocket) {
                     console.log("never made it", websocket.current, res);
                 }
@@ -157,11 +159,8 @@ export default function PromptSection({ generation: gen, seed, id }: PromptSelec
                                     <SelectItem key={item.race}>{item.race}</SelectItem>
                                 )}
                             </Select>
-                            <Select onChange={(v) => setGeneration((g: any) => ({ ...g, options: { ...g.options, physical_attributes: { ...g.options.physical_attributes, clothing: v.target.value } } }))} placeholder="Clothing" isDisabled={readonly} size="lg">
-                                <SelectItem key={"Clothing"}>Clothing</SelectItem>
-                            </Select>
                         </div>
-                        <NumberInput onValueChange={(v) => setGeneration((g: any) => ({ ...g, options: { ...g.options, physical_attributes: { ...g.options.physical_attributes, age: v } } }))} placeholder={generation?.options?.physical_attributes?.age && generation?.options?.physical_attributes?.age?.toString().length > 0 ? gen?.options.physical_attributes?.age?.toString() ?? generation?.options?.physical_attributes?.age?.toString() : ""} isDisabled={readonly} className="" size="sm" />
+                        <NumberInput onValueChange={(v) => setGeneration((g: any) => ({ ...g, options: { ...g.options, physical_attributes: { ...g.options.physical_attributes, age: v } } }))} placeholder={generation?.options?.physical_attributes?.age && generation?.options?.physical_attributes?.age?.toString().length > 0 ? gen?.options.physical_attributes?.age?.toString() ?? generation?.options?.physical_attributes?.age?.toString() : "Age"} isDisabled={readonly} className="" size="sm" />
                     </AccordionItem>
                     <AccordionItem title="Mood" key="Mood">
                         <CheckboxGroup onValueChange={(v) => setGeneration((g: any) => ({ ...g, options: { ...g.options, mood: v } }))} defaultValue={gen?.options.mood ?? generation?.options.mood ?? []} isDisabled={readonly} orientation="horizontal">
