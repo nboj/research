@@ -1,17 +1,24 @@
-'use client'
+"use client";
 
-import styles from "./page.module.css"
+import { Button } from "@heroui/react";
+import styles from "./page.module.css";
+import Link from "next/link";
 
 export default function Login() {
     return (
         <div className={styles.login_container}>
-            <a href="/api/auth/sign-in">
-                Sign In
-            </a>
-            <a href="/api/auth/sign-up">
-                Sign Up
-            </a>
+            <div className={styles.inner_container}>
+                <div>
+                    <h1>Welcome!</h1>
+                    <p>Please sign up to use Prompt Studio.</p>
+                </div>
+                <Button as={Link} href="/api/auth/sign-in" className={styles.button}>
+                    Sign In
+                </Button>
+                <Button as={Link} href="/api/auth/sign-up" className={styles.button}>
+                    Sign Up
+                </Button>
+            </div>
         </div>
-    )
+    );
 }
-
