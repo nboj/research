@@ -4,6 +4,7 @@
 import { HeroUIProvider } from "@heroui/react";
 import { useRouter } from "next/navigation";
 import { createContext, RefObject, useEffect, useRef } from "react";
+import { configureAmplifyClient } from "./_utils/amplifyClient";
 
 declare module "@react-types/shared" {
     interface RouterConfig {
@@ -107,6 +108,8 @@ export default function Providers({ children }: { children: React.ReactNode }) {
             }
         };
         window.addEventListener("online", onOnline);
+
+        configureAmplifyClient();
 
         return () => {
             manualClose.current = true;
